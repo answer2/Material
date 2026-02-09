@@ -1,7 +1,7 @@
 package dev.answer.material
 
 import dev.answer.material.manager.ActivityManager
-import dev.answer.material.view.Activity
+import dev.answer.material.content.Activity
 import javafx.application.Application
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
@@ -15,13 +15,11 @@ class HelloApplication : Application() {
         stage.scene = scene
         stage.show()
 
-        val activity = MainActivity()
-        ActivityManager.startActivity(activity)
+        val application = ApplicationCore();
+        application.onCreate()
     }
 }
 
 fun main() {
     Application.launch(HelloApplication::class.java)
-
-
 }
