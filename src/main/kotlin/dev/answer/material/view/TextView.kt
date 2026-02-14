@@ -17,8 +17,7 @@
 
 package dev.answer.material.view
 
-import javafx.geometry.Pos
-import javafx.scene.control.Label
+import dev.answer.material.content.Context
 import javafx.scene.paint.Paint
 import javafx.scene.text.Font
 /**
@@ -27,55 +26,85 @@ import javafx.scene.text.Font
  * @date 2026/2/9 20:55
  * @description TextView
  */
-
-
 class TextView(
+    context: Context,
     text: String = ""
-) : View() {
+) : View(context) {
 
-    private val label = Label()
+    var text: String = text
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    init {
-        children += label
-        setText(text)
-        setGravity(Gravity.START)
-    }
+    var textSize: Double = 14.0
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    fun setText(text: String) {
-        label.text = text
-    }
+    var textColor: Paint = javafx.scene.paint.Color.BLACK
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    fun getText(): String = label.text
+    var gravity: Gravity = Gravity.START
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    fun setTextSize(size: Double) {
-        label.font = Font.font(label.font.family, size)
-    }
+    var singleLine: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    fun setTextColor(color: Paint) {
-        label.textFill = color
-    }
+    var bold: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    fun setGravity(gravity: Gravity) {
-        alignment = gravity.toPos(true)
-    }
+    var italic: Boolean = false
+        set(value) {
+            field = value
+            invalidate()
+        }
 
-    fun setSingleLine(single: Boolean) {
-        label.isWrapText = !single
-    }
+    override fun onDraw(gc: javafx.scene.canvas.GraphicsContext) {
+        super.onDraw(gc)
 
-    fun setBold(bold: Boolean) {
-        label.font = Font.font(
-            label.font.family,
-            if (bold) javafx.scene.text.FontWeight.BOLD else javafx.scene.text.FontWeight.NORMAL,
-            label.font.size
-        )
-    }
+        // 设置字体
+        val fontWeight = if (bold) javafx.scene.text.FontWeight.BOLD else javafx.scene.text.FontWeight.NORMAL
+        val fontPosture = if (italic) javafx.scene.text.FontPosture.ITALIC else javafx.scene.text.FontPosture.REGULAR
+        val font = Font.font("System", fontWeight, fontPosture, textSize)
+        gc.font = font
 
-    fun setItalic(italic: Boolean) {
-        label.font = Font.font(
-            label.font.family,
-            if (italic) javafx.scene.text.FontPosture.ITALIC else javafx.scene.text.FontPosture.REGULAR,
-            label.font.size
-        )
+        // 设置文本颜色
+        gc.fill = textColor
+
+        // 计算文本位置
+        val textWidth = gc.font.size * text.length * 0.6 // 粗略估算文本宽度
+        val textHeight = gc.font.size
+
+        var textX = left
+        var textY = top + textHeight
+
+        // 应用重力
+        when (gravity) {
+            Gravity.START -> { /* 左侧对齐 */ }
+            Gravity.CENTER -> {
+                textX = left + (width - textWidth) / 2
+            }
+            Gravity.END -> {
+                textX = left + width - textWidth
+            }
+            else -> {}
+        }
+
+        // 绘制文本
+        gc.fillText(text, textX, textY)
     }
 }

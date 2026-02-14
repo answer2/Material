@@ -17,7 +17,6 @@
 
 package dev.answer.material.content
 
-import dev.answer.material.HelloApplication
 import java.io.InputStream
 import java.net.URL
 

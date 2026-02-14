@@ -17,35 +17,20 @@
 
  */
 
-package dev.answer.material.graphics
+package dev.answer.test
 
-import javafx.scene.image.Image
-import java.net.URL
-import java.util.concurrent.ConcurrentHashMap
+import dev.answer.material.ApplicationCore
+import dev.answer.test.activity.TestActivity
 
 /**
  *
  * @author AnswerDev
- * @date 2026/2/9 22:37
- * @description ImageDrawable
+ * @date 2026/2/15 00:04
+ * @description MyApplication
  */
-class ImageDrawable private constructor(
-    private val image: Image
-) : Drawable() {
+class MyApplication : ApplicationCore() {
 
-    override fun getImage(): Image = image
-
-    companion object {
-
-        private val cache = ConcurrentHashMap<String, ImageDrawable>()
-
-        fun fromPath(path: String): ImageDrawable {
-            println(path)
-            return cache.getOrPut(path) {
-                ImageDrawable(
-                    Image(path, true)
-                )
-            }
-        }
+    override fun onCreate(){
+        startActivity(TestActivity::class.java)
     }
 }

@@ -34,7 +34,9 @@ class Window {
     var title : String = "Title"
 
     fun setContent(view: View) {
-        stage.scene = Scene(view)
+        val viewRoot = ViewRoot(view)
+        val hybridRoot = HybridRoot(viewRoot)
+        stage.scene = Scene(hybridRoot)
     }
 
     fun show() {

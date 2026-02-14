@@ -17,24 +17,21 @@
 
  */
 
-package dev.answer.material
+package dev.answer.test
 
-import dev.answer.material.content.ContextImpl
-import dev.answer.material.content.Resources
-import dev.answer.test.activity.TestActivity
+import dev.answer.material.ApplicationCore
+import javafx.application.Application
+import javafx.stage.Stage
 
-/**
- *
- * @author AnswerDev
- * @date 2026/2/10 00:48
- * @description ApplicationCore
- */
-open class ApplicationCore : ContextImpl() {
-
-    override var mResource: Resources =
-        Resources(ApplicationCore::class.java)
-
-    open fun onCreate() {
+class HelloApplication : Application() {
+    override fun start(stage: Stage) {
+        println("66666")
+        val application = MyApplication();
+        application.onCreate()
 
     }
+}
+
+fun main(args : Array<String>) {
+    Application.launch(HelloApplication::class.java)
 }

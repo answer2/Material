@@ -17,6 +17,7 @@
 package dev.answer.material.view
 
 import javafx.geometry.Insets
+import javafx.geometry.Pos
 
 /**
  *
@@ -30,24 +31,56 @@ object LayoutSize {
     const val WRAP_CONTENT = -2
 }
 
-open class LayoutParams(
-    var width: Int = LayoutSize.WRAP_CONTENT,
-    var height: Int = LayoutSize.WRAP_CONTENT,
-    var margin: Insets = Insets.EMPTY
-)
-
-class LinearLayoutParams(
-    width: Int = LayoutSize.WRAP_CONTENT,
-    height: Int = LayoutSize.WRAP_CONTENT,
-    var weight: Float = 0f,
-    var gravity: Gravity = Gravity.START,
-    margin: Insets
-) : LayoutParams( width, height)
-
 enum class Gravity {
     START,
     CENTER,
     END
 }
 
+
+// 布局参数类
+open class LayoutParams {
+    var width: Int = WRAP_CONTENT
+    var height: Int = WRAP_CONTENT
+    var marginLeft: Double = 0.0
+    var marginTop: Double = 0.0
+    var marginRight: Double = 0.0
+    var marginBottom: Double = 0.0
+
+    open fun copy(): LayoutParams {
+        return LayoutParams(width, height)
+    }
+
+    constructor()
+
+    constructor(width: Int, height: Int) {
+        this.width = width
+        this.height = height
+    }
+
+    companion object {
+        const val MATCH_PARENT = -1
+        const val WRAP_CONTENT = -2
+    }
+}
+
+
+class LinearLayoutParams(
+    width: Int = LayoutSize.WRAP_CONTENT,
+    height: Int = LayoutSize.WRAP_CONTENT,
+    var weight: Float = 0f,
+    var gravity: Gravity = Gravity.START,
+) : LayoutParams(width, height) {
+
+    override fun copy(): LayoutParams {
+        return LinearLayoutParams(width, height, weight, gravity)
+    }
+}
+
+
+class FrameLayoutParams(
+    width: Int = LayoutSize.WRAP_CONTENT,
+    height: Int = LayoutSize.WRAP_CONTENT,
+    var alignment: Pos = Pos.TOP_LEFT,
+) : LayoutParams(width, height)
 

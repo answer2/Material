@@ -17,24 +17,17 @@
 
  */
 
-package dev.answer.material
+package dev.answer.test
 
-import dev.answer.material.content.ContextImpl
-import dev.answer.material.content.Resources
-import dev.answer.test.activity.TestActivity
+import javafx.fxml.FXML
+import javafx.scene.control.Label
 
-/**
- *
- * @author AnswerDev
- * @date 2026/2/10 00:48
- * @description ApplicationCore
- */
-open class ApplicationCore : ContextImpl() {
+class HelloController {
+    @FXML
+    private lateinit var welcomeText: Label
 
-    override var mResource: Resources =
-        Resources(ApplicationCore::class.java)
-
-    open fun onCreate() {
-
+    @FXML
+    private fun onHelloButtonClick() {
+        welcomeText.text = "Welcome to JavaFX Application!"
     }
 }

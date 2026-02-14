@@ -12,4 +12,8 @@ module dev.answer.material {
 
     opens dev.answer.material to javafx.fxml;
     exports dev.answer.material;
+    opens dev.answer.test to javafx.fxml;
+    exports dev.answer.test
+            ;
+
 }

@@ -19,8 +19,9 @@
 
 package dev.answer.material.view
 
+import dev.answer.material.content.Context
 import dev.answer.material.graphics.Drawable
-import javafx.scene.image.ImageView
+import dev.answer.material.graphics.ImageDrawable
 
 /**
  *
@@ -28,22 +29,53 @@ import javafx.scene.image.ImageView
  * @date 2026/2/9 22:39
  * @description ImageView
  */
-class ImageView(
-    drawable: Drawable
-) : View() {
 
-    private val imageView = ImageView()
+
+class ImageView(
+    context: Context,
+    drawable: Drawable? = null
+) : View(context) {
+
+    private var imageDrawable: Drawable? = null
+    private var imageWidth: Double = 50.0
+    private var imageHeight: Double = 50.0
 
     init {
-        children += imageView
-        setDrawable(drawable)
-
-        width = 50.0;
-        height = 50.0;
-
+        if (drawable != null) {
+            setDrawable(drawable)
+        }
     }
 
     fun setDrawable(drawable: Drawable) {
-        imageView.image = drawable.getImage()
+        imageDrawable = drawable
+        requestLayout()
+        invalidate()
+    }
+
+    fun setImageSize(width: Double, height: Double) {
+        imageWidth = width
+        imageHeight = height
+        requestLayout()
+        invalidate()
+    }
+
+    fun setImageDimension(width: Int, height: Int) {
+        setImageSize(width.toDouble(), height.toDouble())
+    }
+
+    fun getDrawable(): Drawable? = imageDrawable
+
+    override fun onDraw(gc: javafx.scene.canvas.GraphicsContext) {
+        super.onDraw(gc)
+        val drawable = imageDrawable ?: return
+        drawable.draw(gc, left, top, width, height)
+    }
+
+    override fun onMeasure(widthSpec: Int, heightSpec: Int) {
+        super.onMeasure(widthSpec, heightSpec)
+        if (imageDrawable != null) {
+            measuredWidth = imageWidth
+            measuredHeight = imageHeight
+        }
     }
 }

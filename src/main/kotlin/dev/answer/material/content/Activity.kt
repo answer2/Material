@@ -38,6 +38,7 @@ import dev.answer.material.view.Window
     protected open fun onStop() {}
     protected open fun onDestroy() {}
 
+
     protected fun setTitle(title : String){
         mWindow.title = title
     }
