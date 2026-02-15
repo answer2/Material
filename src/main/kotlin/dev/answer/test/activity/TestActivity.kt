@@ -19,12 +19,12 @@
 
 package dev.answer.test.activity
 
+import dev.answer.material.component.MaterialButton
 import dev.answer.material.content.Activity
 import dev.answer.material.graphics.ColorDrawable
 import dev.answer.material.view.Button
 import dev.answer.material.view.LayoutParams
 import dev.answer.material.view.LinearView
-import dev.answer.material.view.MaterialButton
 import dev.answer.material.view.Orientation
 import dev.answer.material.view.TextView
 import dev.answer.material.view.View
@@ -73,7 +73,7 @@ class TestActivity : Activity() {
             }
         }
 
-        val fadeButton = Button(this, text = "Fade In/Out").apply {
+        val fadeButton = MaterialButton(this, text = "Fade In/Out").apply {
             layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
             setOnClicked {
                 if (animationView.alpha > 0.5) {
@@ -102,7 +102,7 @@ class TestActivity : Activity() {
             }
         }
 
-        val translateButton = Button(this, text = "Translate").apply {
+        val translateButton = MaterialButton(this, text = "Translate").apply {
             layoutParams =LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
             setOnClicked {
                 val anim = ViewAnimation.translate(
@@ -125,7 +125,7 @@ class TestActivity : Activity() {
             }
         }
 
-        val scaleButton = Button(this, text = "Scale").apply {
+        val scaleButton = MaterialButton(this, text = "Scale").apply {
             layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
             setOnClicked {
                 val targetScale = if (animationView.scaleX > 1.5) 1.0 else 2.0
@@ -149,7 +149,7 @@ class TestActivity : Activity() {
             }
         }
 
-        val rotateButton = Button(this, text = "Rotate").apply {
+        val rotateButton = MaterialButton(this, text = "Rotate").apply {
             layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
             setOnClicked {
                 val anim = ViewAnimation.rotate(
@@ -170,7 +170,7 @@ class TestActivity : Activity() {
             }
         }
 
-        val resetButton = Button(this, text = "Reset").apply {
+        val resetButton = MaterialButton(this, text = "Reset").apply {
             layoutParams =LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
             setOnClicked {
                 animationView.alpha = 1.0

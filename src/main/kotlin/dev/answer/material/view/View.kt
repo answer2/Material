@@ -151,7 +151,6 @@ open class View(val context: Context) {
 
     // 触摸事件状态
     protected var isPressed = false
-        private set
     protected var isHovered = false
         private set
 
