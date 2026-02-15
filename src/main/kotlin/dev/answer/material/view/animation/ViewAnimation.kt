@@ -21,12 +21,13 @@ package dev.answer.material.view.animation
 
 import dev.answer.material.view.View
 import javafx.animation.Animation
-import javafx.animation.FadeTransition
+import javafx.animation.KeyFrame
+import javafx.animation.KeyValue
 import javafx.animation.ParallelTransition
-import javafx.animation.RotateTransition
-import javafx.animation.ScaleTransition
 import javafx.animation.SequentialTransition
-import javafx.animation.TranslateTransition
+import javafx.animation.Timeline
+import javafx.beans.property.DoubleProperty
+import javafx.beans.property.SimpleDoubleProperty
 import javafx.util.Duration
 
 /**
@@ -44,55 +45,84 @@ object ViewAnimation {
     /**
      * 创建淡入动画
      */
-    fun fadeIn(view: View, duration: Duration = Duration.millis(300.0)): FadeTransition {
-        val fadeTransition = FadeTransition(duration)
-        fadeTransition.fromValue = 0.0
-        fadeTransition.toValue = 1.0
-        return fadeTransition
+    fun fadeIn(view: View, duration: Duration = Duration.millis(300.0)): Timeline {
+        val alphaProperty = SimpleDoubleProperty(view.alpha)
+        alphaProperty.addListener { _, _, newValue -> view.alpha = newValue.toDouble() }
+        
+        return Timeline(
+            KeyFrame(Duration.ZERO, KeyValue(alphaProperty, view.alpha)),
+            KeyFrame(duration, KeyValue(alphaProperty, 1.0))
+        )
     }
 
     /**
      * 创建淡出动画
      */
-    fun fadeOut(view: View, duration: Duration = Duration.millis(300.0)): FadeTransition {
-        val fadeTransition = FadeTransition(duration)
-        fadeTransition.fromValue = 1.0
-        fadeTransition.toValue = 0.0
-        return fadeTransition
+    fun fadeOut(view: View, duration: Duration = Duration.millis(300.0)): Timeline {
+        val alphaProperty = SimpleDoubleProperty(view.alpha)
+        alphaProperty.addListener { _, _, newValue -> view.alpha = newValue.toDouble() }
+        
+        return Timeline(
+            KeyFrame(Duration.ZERO, KeyValue(alphaProperty, view.alpha)),
+            KeyFrame(duration, KeyValue(alphaProperty, 0.0))
+        )
     }
 
     /**
      * 创建平移动画
      */
-    fun translate(view: View, fromX: Double, fromY: Double, toX: Double, toY: Double, duration: Duration = Duration.millis(300.0)): TranslateTransition {
-        val translateTransition = TranslateTransition(duration)
-        translateTransition.fromX = fromX
-        translateTransition.fromY = fromY
-        translateTransition.toX = toX
-        translateTransition.toY = toY
-        return translateTransition
+    fun translate(view: View, fromX: Double, fromY: Double, toX: Double, toY: Double, duration: Duration = Duration.millis(300.0)): Timeline {
+        val translateXProperty = SimpleDoubleProperty(view.translateX)
+        val translateYProperty = SimpleDoubleProperty(view.translateY)
+        
+        translateXProperty.addListener { _, _, newValue -> view.translateX = newValue.toDouble() }
+        translateYProperty.addListener { _, _, newValue -> view.translateY = newValue.toDouble() }
+        
+        return Timeline(
+            KeyFrame(Duration.ZERO, 
+                KeyValue(translateXProperty, fromX),
+                KeyValue(translateYProperty, fromY)
+            ),
+            KeyFrame(duration, 
+                KeyValue(translateXProperty, toX),
+                KeyValue(translateYProperty, toY)
+            )
+        )
     }
 
     /**
      * 创建缩放动画
      */
-    fun scale(view: View, fromX: Double, fromY: Double, toX: Double, toY: Double, duration: Duration = Duration.millis(300.0)): ScaleTransition {
-        val scaleTransition = ScaleTransition(duration)
-        scaleTransition.fromX = fromX
-        scaleTransition.fromY = fromY
-        scaleTransition.toX = toX
-        scaleTransition.toY = toY
-        return scaleTransition
+    fun scale(view: View, fromX: Double, fromY: Double, toX: Double, toY: Double, duration: Duration = Duration.millis(300.0)): Timeline {
+        val scaleXProperty = SimpleDoubleProperty(view.scaleX)
+        val scaleYProperty = SimpleDoubleProperty(view.scaleY)
+        
+        scaleXProperty.addListener { _, _, newValue -> view.scaleX = newValue.toDouble() }
+        scaleYProperty.addListener { _, _, newValue -> view.scaleY = newValue.toDouble() }
+        
+        return Timeline(
+            KeyFrame(Duration.ZERO, 
+                KeyValue(scaleXProperty, fromX),
+                KeyValue(scaleYProperty, fromY)
+            ),
+            KeyFrame(duration, 
+                KeyValue(scaleXProperty, toX),
+                KeyValue(scaleYProperty, toY)
+            )
+        )
     }
 
     /**
      * 创建旋转动画
      */
-    fun rotate(view: View, fromAngle: Double, toAngle: Double, duration: Duration = Duration.millis(300.0)): RotateTransition {
-        val rotateTransition = RotateTransition(duration)
-        rotateTransition.fromAngle = fromAngle
-        rotateTransition.toAngle = toAngle
-        return rotateTransition
+    fun rotate(view: View, fromAngle: Double, toAngle: Double, duration: Duration = Duration.millis(300.0)): Timeline {
+        val rotationProperty = SimpleDoubleProperty(view.rotation)
+        rotationProperty.addListener { _, _, newValue -> view.rotation = newValue.toDouble() }
+        
+        return Timeline(
+            KeyFrame(Duration.ZERO, KeyValue(rotationProperty, fromAngle)),
+            KeyFrame(duration, KeyValue(rotationProperty, toAngle))
+        )
     }
 
     /**

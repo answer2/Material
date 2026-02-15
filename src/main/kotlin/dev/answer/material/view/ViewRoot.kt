@@ -21,6 +21,7 @@ package dev.answer.material.view
 
 import dev.answer.material.view.measure.MeasureSpec
 import javafx.scene.canvas.Canvas
+import javafx.scene.input.MouseEvent
 
 /**
  *
@@ -34,15 +35,40 @@ class ViewRoot(
 ) : Canvas() {
 
     init {
+        attachRoot()
+
         widthProperty().addListener { _, _, _ -> requestLayoutAndDraw() }
         heightProperty().addListener { _, _, _ -> requestLayoutAndDraw() }
+
+        addEventHandler(MouseEvent.ANY) { event ->
+            rootView.dispatchTouchEvent(event)
+        }
+    }
+
+    /**
+     * 绑定 invalidate 和 requestLayout 到 ViewRoot
+     */
+    private fun attachRoot() {
+        rootView.parent = object : View(rootView.context) {
+
+            override fun invalidate() {
+                draw()
+            }
+
+            override fun requestLayout() {
+                requestLayoutAndDraw()
+            }
+        }
     }
 
     private fun requestLayoutAndDraw() {
         if (width <= 0 || height <= 0) return
 
-        val widthSpec = MeasureSpec.makeMeasureSpec(width.toInt(), MeasureSpec.EXACTLY)
-        val heightSpec = MeasureSpec.makeMeasureSpec(height.toInt(), MeasureSpec.EXACTLY)
+        val widthSpec =
+            MeasureSpec.makeMeasureSpec(width.toInt(), MeasureSpec.EXACTLY)
+        val heightSpec =
+            MeasureSpec.makeMeasureSpec(height.toInt(), MeasureSpec.EXACTLY)
+
         rootView.measure(widthSpec, heightSpec)
 
         rootView.layout(
@@ -58,7 +84,6 @@ class ViewRoot(
     private fun draw() {
         val gc = graphicsContext2D
         gc.clearRect(0.0, 0.0, width, height)
-        gc.fillRect(0.0, 0.0, width, height)
         rootView.draw(gc)
     }
 }

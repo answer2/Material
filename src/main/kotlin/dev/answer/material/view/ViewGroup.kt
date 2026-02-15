@@ -32,10 +32,10 @@ import javafx.scene.canvas.GraphicsContext
 open class ViewGroup(context: Context) : View(context) {
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
-        // 计算所有子视图的测量规格
+        // 测量所有子视图
         measureChildren(widthSpec, heightSpec)
 
-        // 计算当前ViewGroup的测量大小
+        // 计算当前 ViewGroup 的测量大小
         val width = getDefaultSize(suggestedMinimumWidth, widthSpec)
         val height = getDefaultSize(suggestedMinimumHeight, heightSpec)
 
@@ -45,7 +45,7 @@ open class ViewGroup(context: Context) : View(context) {
 
     override fun onLayout(l: Double, t: Double, r: Double, b: Double) {
         super.onLayout(l, t, r, b)
-        // 布局所有子视图
+        // 布局所有子视图（由子类实现具体逻辑）
         layoutChildren(l, t, r, b)
     }
 
@@ -63,8 +63,16 @@ open class ViewGroup(context: Context) : View(context) {
      */
     protected open fun measureChild(child: View, parentWidthSpec: Int, parentHeightSpec: Int) {
         val lp = child.layoutParams
-        val childWidthSpec = getChildMeasureSpec(parentWidthSpec, paddingLeft + paddingRight + lp.marginLeft + lp.marginRight, lp.width)
-        val childHeightSpec = getChildMeasureSpec(parentHeightSpec, paddingTop + paddingBottom + lp.marginTop + lp.marginBottom, lp.height)
+        val childWidthSpec = getChildMeasureSpec(
+            parentWidthSpec,
+            paddingLeft + paddingRight + lp.marginLeft + lp.marginRight,
+            lp.width
+        )
+        val childHeightSpec = getChildMeasureSpec(
+            parentHeightSpec,
+            paddingTop + paddingBottom + lp.marginTop + lp.marginBottom,
+            lp.height
+        )
         child.measure(childWidthSpec, childHeightSpec)
     }
 
@@ -103,10 +111,10 @@ open class ViewGroup(context: Context) : View(context) {
     }
 
     /**
-     * 布局所有子视图
+     * 布局所有子视图（由子类实现）
      */
     protected open fun layoutChildren(l: Double, t: Double, r: Double, b: Double) {
-        // 子类实现具体的布局逻辑
+        // 子类覆盖
     }
 
     override val suggestedMinimumWidth: Int
@@ -128,16 +136,37 @@ open class ViewGroup(context: Context) : View(context) {
         }
 
     /**
-     * 获取子视图在指定位置
+     * 添加子视图并指定布局参数
      */
-    fun getChildAt(index: Int): View? {
-        return if (index >= 0 && index < children.size) children[index] else null
+    open fun addView(view: View, params: LayoutParams) {
+        view.layoutParams = params
+        addView(view)
+    }
+
+    override fun addView(child: View) {
+        super.addView(child)
+        child.onAttach()
+    }
+
+    override fun removeView(child: View) {
+        child.onDetach()
+        super.removeView(child)
+    }
+
+    override fun removeAllViews() {
+        for (child in children) {
+            child.onDetach()
+        }
+        super.removeAllViews()
     }
 
     /**
      * 获取子视图数量
      */
-    fun getChildCount(): Int {
-        return children.size
-    }
+    fun getChildCount(): Int = children.size
+
+    /**
+     * 获取指定位置的子视图
+     */
+    fun getChildAt(index: Int): View? = children.getOrNull(index)
 }

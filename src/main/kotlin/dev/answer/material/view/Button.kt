@@ -20,9 +20,14 @@
 package dev.answer.material.view
 
 import dev.answer.material.content.Context
+import dev.answer.material.graphics.ColorDrawable
 import dev.answer.material.graphics.Drawable
 import dev.answer.material.graphics.StateDrawable
+import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.MouseEvent
+import javafx.scene.paint.Color
+import javafx.scene.text.Font
+import javafx.scene.text.Text
 
 /**
  *
@@ -30,32 +35,65 @@ import javafx.scene.input.MouseEvent
  * @date 2026/2/10 12:21
  * @description Button
  */
-
 class Button(
     context: Context,
     private val drawable: Drawable? = null,
-    private val text: String = ""
+    private var text: String = "",
 ) : View(context) {
 
-    private val stateDrawable: StateDrawable? = if (drawable is StateDrawable) drawable else null
+    private val stateDrawable: StateDrawable? = drawable as? StateDrawable
+
+    private var cachedTextNode = Text()
+
+    var textSize: Double = 14.0
+        set(value) {
+            field = value
+            invalidate()
+            requestLayout()
+        }
+
+    var textColor: Color = Color.WHITE
+        set(value) {
+            field = value
+            invalidate()
+        }
 
     init {
-        if (drawable != null && drawable !is StateDrawable) {
-            background = drawable
+        clickable = true
+
+        background = when {
+            drawable is StateDrawable -> drawable
+            drawable != null -> drawable
+            else -> ColorDrawable(Color.web("#3498DB"))
         }
 
-        // 设置点击监听器
-        onClickListener = object : View.OnClickListener {
-            override fun onClick(v: View) {
-                // 处理点击事件
-            }
-        }
+        updateTextNode()
     }
 
-    private fun updateButtonState() {
-        stateDrawable?.let {
-            background = it
-        }
+    fun setText(value: String) {
+        text = value
+        updateTextNode()
+        requestLayout()
+        invalidate()
+    }
+
+    private fun updateTextNode() {
+        cachedTextNode.text = text
+        cachedTextNode.font = Font.font("System", textSize)
+    }
+
+
+    override fun onMeasure(widthSpec: Int, heightSpec: Int) {
+
+        updateTextNode()
+
+        val bounds = cachedTextNode.layoutBounds
+
+        val desiredWidth = bounds.width + paddingLeft + paddingRight + 24
+        val desiredHeight = bounds.height + paddingTop + paddingBottom + 12
+
+        measuredWidth = resolveSize(desiredWidth, widthSpec)
+        measuredHeight = resolveSize(desiredHeight, heightSpec)
     }
 
     fun setOnClicked(action: () -> Unit) {
@@ -67,29 +105,41 @@ class Button(
     }
 
     override fun onTouchEvent(event: MouseEvent): Boolean {
+
         when (event.eventType) {
-            MouseEvent.MOUSE_ENTERED -> {
+
+            MouseEvent.MOUSE_ENTERED ->
                 stateDrawable?.setState(StateDrawable.State.HOVER)
-                updateButtonState()
-                return true
-            }
-            MouseEvent.MOUSE_EXITED -> {
+
+            MouseEvent.MOUSE_EXITED ->
                 stateDrawable?.setState(StateDrawable.State.NORMAL)
-                updateButtonState()
-                return true
-            }
-            MouseEvent.MOUSE_PRESSED -> {
+
+            MouseEvent.MOUSE_PRESSED ->
                 stateDrawable?.setState(StateDrawable.State.PRESSED)
-                updateButtonState()
-                return true
-            }
-            MouseEvent.MOUSE_RELEASED -> {
+
+            MouseEvent.MOUSE_RELEASED ->
                 stateDrawable?.setState(StateDrawable.State.NORMAL)
-                updateButtonState()
-                return true
-            }
-            else -> {}
         }
+
+        invalidate()
         return super.onTouchEvent(event)
+    }
+
+    override fun onDraw(gc: GraphicsContext) {
+
+        if (text.isEmpty()) return
+
+        gc.font = cachedTextNode.font
+        gc.fill = textColor
+
+        val bounds = cachedTextNode.layoutBounds
+
+        gc.textAlign = javafx.scene.text.TextAlignment.CENTER
+        gc.textBaseline = javafx.geometry.VPos.CENTER
+
+        val centerX = width / 2
+        val centerY = height / 2
+
+        gc.fillText(text, centerX, centerY)
     }
 }

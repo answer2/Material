@@ -56,8 +56,7 @@ println(path)
        val image = ImageView(this, icon);
 
         val title = TextView(this, "Hello Material").apply {
-            // 这里假设TextView有setTextSize、setBold、setGravity等方法
-            // 如果这些方法不存在，我们需要根据实际情况进行调整
+
         }
 
         layout.addView(

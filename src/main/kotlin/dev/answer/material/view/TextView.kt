@@ -18,93 +18,109 @@
 package dev.answer.material.view
 
 import dev.answer.material.content.Context
+import javafx.scene.canvas.GraphicsContext
+import javafx.scene.paint.Color
 import javafx.scene.paint.Paint
 import javafx.scene.text.Font
+import javafx.scene.text.FontPosture
+import javafx.scene.text.FontWeight
+import javafx.scene.text.Text
+
 /**
  *
  * @author AnswerDev
  * @date 2026/2/9 20:55
  * @description TextView
  */
-class TextView(
-    context: Context,
-    text: String = ""
-) : View(context) {
+
+class TextView(context: Context, text: String = "") : View(context) {
 
     var text: String = text
-        set(value) {
-            field = value
-            invalidate()
-        }
+        set(value) { field = value; invalidate() }
 
     var textSize: Double = 14.0
-        set(value) {
-            field = value
-            invalidate()
-        }
+        set(value) { field = value; invalidate() }
 
-    var textColor: Paint = javafx.scene.paint.Color.BLACK
-        set(value) {
-            field = value
-            invalidate()
-        }
+    var textColor: Paint = Color.BLACK
+        set(value) { field = value; invalidate() }
 
     var gravity: Gravity = Gravity.START
-        set(value) {
-            field = value
-            invalidate()
-        }
+        set(value) { field = value; invalidate() }
 
-    var singleLine: Boolean = false
-        set(value) {
-            field = value
-            invalidate()
-        }
+    var verticalGravity: VerticalGravity = VerticalGravity.CENTER
+        set(value) { field = value; invalidate() }
 
     var bold: Boolean = false
-        set(value) {
-            field = value
-            invalidate()
-        }
+        set(value) { field = value; invalidate() }
 
     var italic: Boolean = false
-        set(value) {
-            field = value
-            invalidate()
-        }
+        set(value) { field = value; invalidate() }
 
-    override fun onDraw(gc: javafx.scene.canvas.GraphicsContext) {
-        super.onDraw(gc)
 
-        // 设置字体
-        val fontWeight = if (bold) javafx.scene.text.FontWeight.BOLD else javafx.scene.text.FontWeight.NORMAL
-        val fontPosture = if (italic) javafx.scene.text.FontPosture.ITALIC else javafx.scene.text.FontPosture.REGULAR
+    override fun onMeasure(widthSpec: Int, heightSpec: Int) {
+
+        val fontWeight = if (bold) FontWeight.BOLD else FontWeight.NORMAL
+        val fontPosture = if (italic) FontPosture.ITALIC else FontPosture.REGULAR
         val font = Font.font("System", fontWeight, fontPosture, textSize)
-        gc.font = font
 
-        // 设置文本颜色
+        val textNode = Text(text)
+        textNode.font = font
+
+        val bounds = textNode.layoutBounds
+
+        val desiredWidth = bounds.width + paddingLeft + paddingRight
+        val desiredHeight = bounds.height + paddingTop + paddingBottom
+
+        measuredWidth = resolveSize(desiredWidth, widthSpec)
+        measuredHeight = resolveSize(desiredHeight, heightSpec)
+    }
+
+
+    override fun onDraw(gc: GraphicsContext) {
+
+        if (text.isEmpty()) return
+
+        val fontWeight = if (bold) FontWeight.BOLD else FontWeight.NORMAL
+        val fontPosture = if (italic) FontPosture.ITALIC else FontPosture.REGULAR
+        val font = Font.font("System", fontWeight, fontPosture, textSize)
+
+        gc.font = font
         gc.fill = textColor
 
-        // 计算文本位置
-        val textWidth = gc.font.size * text.length * 0.6 // 粗略估算文本宽度
-        val textHeight = gc.font.size
-
-        var textX = left
-        var textY = top + textHeight
-
-        // 应用重力
-        when (gravity) {
-            Gravity.START -> { /* 左侧对齐 */ }
+        // 水平对齐
+        val textX = when (gravity) {
+            Gravity.START -> {
+                gc.textAlign = javafx.scene.text.TextAlignment.LEFT
+                paddingLeft
+            }
             Gravity.CENTER -> {
-                textX = left + (width - textWidth) / 2
+                gc.textAlign = javafx.scene.text.TextAlignment.CENTER
+                width / 2
             }
             Gravity.END -> {
-                textX = left + width - textWidth
+                gc.textAlign = javafx.scene.text.TextAlignment.RIGHT
+                width - paddingRight
             }
-            else -> {}
         }
 
-        // 绘制文本
+        // 垂直对齐
+        val textY = when (verticalGravity) {
+            VerticalGravity.TOP -> {
+                gc.textBaseline = javafx.geometry.VPos.TOP
+                paddingTop
+            }
+            VerticalGravity.CENTER -> {
+                gc.textBaseline = javafx.geometry.VPos.CENTER
+                height / 2
+            }
+            VerticalGravity.BOTTOM -> {
+                gc.textBaseline = javafx.geometry.VPos.BOTTOM
+                height - paddingBottom
+            }
+        }
+
         gc.fillText(text, textX, textY)
     }
+
 }
+

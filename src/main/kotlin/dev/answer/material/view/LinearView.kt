@@ -29,10 +29,16 @@ import javafx.geometry.Pos
  * @description LinearView
  */
 
+/**
+ * 线性布局，支持水平和垂直排列，以及权重分配。
+ *
+ * @param context 上下文
+ * @param orientation 方向（默认为垂直）
+ */
 class LinearView(
     context: Context,
     orientation: Orientation = Orientation.VERTICAL
-) : GroupView(context) {
+) : ViewGroup(context) {
 
     var orientation: Orientation = orientation
         set(value) {
@@ -48,140 +54,100 @@ class LinearView(
             requestLayout()
         }
 
-    /**
-     * 测量所有子视图
-     */
-    protected open fun measureChildren(widthSpec: Int, heightSpec: Int) {
-        for (child in childrenViews) {
-            measureChild(child, widthSpec, heightSpec)
-        }
-    }
-
-    /**
-     * 测量单个子视图
-     */
-    protected open fun measureChild(child: View, parentWidthSpec: Int, parentHeightSpec: Int) {
-        val lp = child.layoutParams
-        val childWidthSpec = getChildMeasureSpec(parentWidthSpec, paddingLeft + paddingRight + lp.marginLeft + lp.marginRight, lp.width)
-        val childHeightSpec = getChildMeasureSpec(parentHeightSpec, paddingTop + paddingBottom + lp.marginTop + lp.marginBottom, lp.height)
-        child.measure(childWidthSpec, childHeightSpec)
-    }
-
-    /**
-     * 计算子视图的测量规格
-     */
-    protected open fun getChildMeasureSpec(spec: Int, padding: Double, childDimension: Int): Int {
-        val specMode = MeasureSpec.getMode(spec)
-        val specSize = MeasureSpec.getSize(spec) - padding.toInt()
-
-        return when {
-            childDimension > 0 -> {
-                // 子视图指定了具体大小
-                MeasureSpec.makeMeasureSpec(childDimension, MeasureSpec.EXACTLY)
-            }
-            childDimension == LayoutSize.MATCH_PARENT -> {
-                // 子视图匹配父视图
-                when (specMode) {
-                    MeasureSpec.EXACTLY -> MeasureSpec.makeMeasureSpec(specSize, MeasureSpec.EXACTLY)
-                    MeasureSpec.AT_MOST -> MeasureSpec.makeMeasureSpec(specSize, MeasureSpec.AT_MOST)
-                    else -> MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-                }
-            }
-            childDimension == LayoutSize.WRAP_CONTENT -> {
-                // 子视图包裹内容
-                when (specMode) {
-                    MeasureSpec.EXACTLY, MeasureSpec.AT_MOST -> MeasureSpec.makeMeasureSpec(specSize, MeasureSpec.AT_MOST)
-                    else -> MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-                }
-            }
-            else -> {
-                // 其他情况
-                MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
-            }
-        }
-    }
-
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
-        // 测量所有子视图
+        // 先测量所有子视图（使用父视图的规格）
         measureChildren(widthSpec, heightSpec)
 
-        // 计算总宽度和高度
-        var totalWidth = paddingLeft + paddingRight
-        var totalHeight = paddingTop + paddingBottom
-
-        // 计算权重总和
+        // 计算权重总和及固定部分尺寸
         var totalWeight = 0.0
-        childrenViews.forEach {
+        children.forEach {
             val params = it.layoutParams as? LinearLayoutParams
             if (params != null && params.weight > 0) {
                 totalWeight += params.weight
             }
         }
 
-        // 计算固定大小的子视图占用的空间
+        val paddingLeft = this.paddingLeft
+        val paddingTop = this.paddingTop
+        val paddingRight = this.paddingRight
+        val paddingBottom = this.paddingBottom
+
+        // 父视图可用内容区域大小（减去内边距）
+        val contentWidth = MeasureSpec.getSize(widthSpec).toDouble() - paddingLeft - paddingRight
+        val contentHeight = MeasureSpec.getSize(heightSpec).toDouble() - paddingTop - paddingBottom
+
+        // 计算固定大小子视图占用的空间（不含权重子视图）
         var fixedWidth = 0.0
         var fixedHeight = 0.0
-        childrenViews.forEach {
-            val lp = it.layoutParams
-            val linearParams = lp as? LinearLayoutParams
-            if (linearParams == null || linearParams.weight <= 0) {
+        children.forEach { child ->
+            val lp = child.layoutParams
+            val params = lp as? LinearLayoutParams
+            // 如果无权值或权重为0，视为固定大小
+            if (params == null || params.weight <= 0) {
                 if (orientation == Orientation.HORIZONTAL) {
-                    fixedWidth += it.measuredWidth + lp.marginLeft + lp.marginRight
-                    fixedHeight = maxOf(fixedHeight, it.measuredHeight + lp.marginTop + lp.marginBottom)
+                    fixedWidth += child.measuredWidth + lp.marginLeft + lp.marginRight
+                    fixedHeight = maxOf(fixedHeight, child.measuredHeight + lp.marginTop + lp.marginBottom)
                 } else {
-                    fixedWidth = maxOf(fixedWidth, it.measuredWidth + lp.marginLeft + lp.marginRight)
-                    fixedHeight += it.measuredHeight + lp.marginTop + lp.marginBottom
+                    fixedWidth = maxOf(fixedWidth, child.measuredWidth + lp.marginLeft + lp.marginRight)
+                    fixedHeight += child.measuredHeight + lp.marginTop + lp.marginBottom
                 }
             }
         }
 
-        // 计算可用空间
-        val specWidth = MeasureSpec.getSize(widthSpec).toDouble()
-        val specHeight = MeasureSpec.getSize(heightSpec).toDouble()
-        val availableWidth = maxOf(0.0, specWidth - paddingLeft - paddingRight)
-        val availableHeight = maxOf(0.0, specHeight - paddingTop - paddingBottom)
-
-        // 计算权重分配的空间
+        // 如果有权重子视图，需要重新测量它们以分配剩余空间
         if (totalWeight > 0) {
+            val childCount = children.size
+            val spacingTotal = (childCount - 1) * spacing
+
             if (orientation == Orientation.HORIZONTAL) {
-                val weightWidth = availableWidth - fixedWidth - (childrenViews.size - 1) * spacing
-                childrenViews.forEach {
-                    val params = it.layoutParams as? LinearLayoutParams
+                // 水平方向：宽度按权重分配
+                val remainingWidth = maxOf(0.0, contentWidth - fixedWidth - spacingTotal)
+                children.forEach { child ->
+                    val params = child.layoutParams as? LinearLayoutParams
                     if (params != null && params.weight > 0) {
-                        val childWidth = (params.weight / totalWeight) * weightWidth
-                        val childHeightSpec = MeasureSpec.makeMeasureSpec(availableHeight.toInt(), MeasureSpec.AT_MOST)
-                        it.measure(MeasureSpec.makeMeasureSpec(childWidth.toInt(), MeasureSpec.EXACTLY), childHeightSpec)
+                        val childWidth = (params.weight / totalWeight) * remainingWidth
+                        val widthSpecExact = MeasureSpec.makeMeasureSpec(childWidth.toInt(), MeasureSpec.EXACTLY)
+                        // 高度可以自由伸缩（AT_MOST）
+                        val heightSpecAtMost = MeasureSpec.makeMeasureSpec(contentHeight.toInt(), MeasureSpec.AT_MOST)
+                        child.measure(widthSpecExact, heightSpecAtMost)
                     }
                 }
             } else {
-                val weightHeight = availableHeight - fixedHeight - (childrenViews.size - 1) * spacing
-                childrenViews.forEach {
-                    val params = it.layoutParams as? LinearLayoutParams
+                // 垂直方向：高度按权重分配
+                val remainingHeight = maxOf(0.0, contentHeight - fixedHeight - spacingTotal)
+                children.forEach { child ->
+                    val params = child.layoutParams as? LinearLayoutParams
                     if (params != null && params.weight > 0) {
-                        val childHeight = (params.weight / totalWeight) * weightHeight
-                        val childWidthSpec = MeasureSpec.makeMeasureSpec(availableWidth.toInt(), MeasureSpec.AT_MOST)
-                        it.measure(childWidthSpec, MeasureSpec.makeMeasureSpec(childHeight.toInt(), MeasureSpec.EXACTLY))
+                        val childHeight = (params.weight / totalWeight) * remainingHeight
+                        val widthSpecAtMost = MeasureSpec.makeMeasureSpec(contentWidth.toInt(), MeasureSpec.AT_MOST)
+                        val heightSpecExact = MeasureSpec.makeMeasureSpec(childHeight.toInt(), MeasureSpec.EXACTLY)
+                        child.measure(widthSpecAtMost, heightSpecExact)
                     }
                 }
             }
         }
 
-        // 计算最终的测量大小
+        // 重新计算总尺寸（包括内边距和固定部分）
+        var totalWidth = paddingLeft + paddingRight
+        var totalHeight = paddingTop + paddingBottom
+
         if (orientation == Orientation.HORIZONTAL) {
-            totalWidth = fixedWidth
+            // 水平布局：宽度为固定部分 + 权重分配部分，高度为所有子视图的最大高度
+            totalWidth += fixedWidth
             if (totalWeight > 0) {
-                totalWidth += availableWidth - fixedWidth
+                totalWidth += contentWidth - fixedWidth // 剩余宽度已全部分配给权重子视图
             }
-            totalHeight = maxOf(totalHeight, availableHeight)
+            totalHeight += fixedHeight
         } else {
-            totalWidth = maxOf(totalWidth, availableWidth)
-            totalHeight = fixedHeight
+            // 垂直布局：高度为固定部分 + 权重分配部分，宽度为所有子视图的最大宽度
+            totalWidth += fixedWidth
+            totalHeight += fixedHeight
             if (totalWeight > 0) {
-                totalHeight += availableHeight - fixedHeight
+                totalHeight += contentHeight - fixedHeight
             }
         }
 
-        // 应用测量规格
+        // 应用测量规格（可能受父视图限制）
         measuredWidth = getDefaultSize(totalWidth.toInt(), widthSpec)
         measuredHeight = getDefaultSize(totalHeight.toInt(), heightSpec)
     }
@@ -200,16 +166,16 @@ class LinearView(
         var currentX = paddingLeft
         var currentY = paddingTop
 
-        childrenViews.forEachIndexed { index, view ->
-            val lp = view.layoutParams
+        children.forEachIndexed { index, child ->
+            val lp = child.layoutParams
             val linearParams = lp as? LinearLayoutParams
-            
+
             val marginLeft = lp.marginLeft
             val marginTop = lp.marginTop
             val marginRight = lp.marginRight
             val marginBottom = lp.marginBottom
 
-            // 应用间距
+            // 第一个子视图不加间距，后续每个子视图之前加上间距
             if (index > 0) {
                 if (orientation == Orientation.HORIZONTAL) {
                     currentX += spacing
@@ -218,43 +184,43 @@ class LinearView(
                 }
             }
 
-            // 应用外边距
-            currentX += marginLeft
-            currentY += marginTop
+            // 计算子视图的最终位置（考虑外边距）
+            var childLeft = currentX + marginLeft
+            var childTop = currentY + marginTop
 
-            // 计算子视图的位置和大小
-            var childWidth = view.measuredWidth
-            var childHeight = view.measuredHeight
+            // 子视图测量宽高
+            val childWidth = child.measuredWidth
+            val childHeight = child.measuredHeight
 
-            // 应用重力（仅对LinearLayoutParams有效）
+            // 根据重力调整位置（仅针对非主轴方向）
             if (linearParams?.gravity != null) {
                 when (orientation) {
                     Orientation.HORIZONTAL -> {
-                        // 在水平布局中，重力影响垂直位置
+                        // 水平布局：重力影响垂直位置
                         when (linearParams.gravity) {
                             Gravity.START -> {
-                                // 顶部对齐
+                                // 顶部对齐，无需调整
                             }
                             Gravity.CENTER -> {
-                                currentY = paddingTop + (contentHeight - childHeight) / 2
+                                childTop = paddingTop + marginTop + (contentHeight - childHeight) / 2
                             }
                             Gravity.END -> {
-                                currentY = paddingTop + contentHeight - childHeight
+                                childTop = paddingTop + marginTop + contentHeight - childHeight
                             }
                             else -> {}
                         }
                     }
                     Orientation.VERTICAL -> {
-                        // 在垂直布局中，重力影响水平位置
+                        // 垂直布局：重力影响水平位置
                         when (linearParams.gravity) {
                             Gravity.START -> {
-                                // 左侧对齐
+                                // 左侧对齐，无需调整
                             }
                             Gravity.CENTER -> {
-                                currentX = paddingLeft + (contentWidth - childWidth) / 2
+                                childLeft = paddingLeft + marginLeft + (contentWidth - childWidth) / 2
                             }
                             Gravity.END -> {
-                                currentX = paddingLeft + contentWidth - childWidth
+                                childLeft = paddingLeft + marginLeft + contentWidth - childWidth
                             }
                             else -> {}
                         }
@@ -263,29 +229,14 @@ class LinearView(
             }
 
             // 布局子视图
-            view.layout(currentX, currentY, currentX + childWidth, currentY + childHeight)
+            child.layout(childLeft, childTop, childLeft + childWidth, childTop + childHeight)
 
-            // 更新当前位置
+            // 更新累积位置（包含子视图所占用的空间及右/下外边距）
             if (orientation == Orientation.HORIZONTAL) {
-                currentX += childWidth + marginRight
+                currentX += childWidth + marginLeft + marginRight
             } else {
-                currentY += childHeight + marginBottom
+                currentY += childHeight + marginTop + marginBottom
             }
         }
-    }
-
-    /**
-     * 应用布局参数
-     */
-    private fun applyLayoutParams(view: View, params: LinearLayoutParams) {
-        // 布局参数在onMeasure和onLayout中应用
-    }
-
-    private fun Double?.orElse(default: Double): Double {
-        return this ?: default
-    }
-
-    private fun maxOf(a: Double, b: Double): Double {
-        return if (a > b) a else b
     }
 }

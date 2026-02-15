@@ -31,6 +31,8 @@ object LayoutSize {
     const val WRAP_CONTENT = -2
 }
 
+enum class VerticalGravity { TOP, CENTER, BOTTOM }
+
 enum class Gravity {
     START,
     CENTER,

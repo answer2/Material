@@ -24,10 +24,15 @@ import dev.answer.material.graphics.ColorDrawable
 import dev.answer.material.view.Button
 import dev.answer.material.view.LayoutParams
 import dev.answer.material.view.LinearView
+import dev.answer.material.view.MaterialButton
 import dev.answer.material.view.Orientation
 import dev.answer.material.view.TextView
 import dev.answer.material.view.View
+import dev.answer.material.view.animation.AnimationListener
+import dev.answer.material.view.animation.ViewAnimation
+import javafx.animation.Animation
 import javafx.scene.paint.Color
+import javafx.util.Duration
 
 /**
  *
@@ -36,6 +41,9 @@ import javafx.scene.paint.Color
  * @description TestActivity
  */
 class TestActivity : Activity() {
+    
+    private lateinit var animationView: View
+    
     override fun onCreate() {
         super.onCreate()
 
@@ -43,36 +51,145 @@ class TestActivity : Activity() {
 
         val layout = LinearView(this, Orientation.VERTICAL)
         layout.layoutParams  = LayoutParams(width = 400, height = 600)
-        layout.background = ColorDrawable(Color.web("#FF6B6B"))  // 红色，看看大小
+        layout.background = ColorDrawable(Color.web("#2C3E50"))
         layout.spacing = 10.0
         layout.setPadding(10.0)
 
-        val item1 = View(this).apply {
-            background = ColorDrawable(Color.web("#3498DB"))
+        animationView = LinearView(this).apply {
+            background = ColorDrawable(Color.web("#E74C3C"))
             layoutParams = LayoutParams(width = 100, height = 100)
+            onClickListener = View.OnClickListener { view ->
+                println("按钮被点击: $view")
+            }
         }
 
-        val item2 = View(this).apply {
-            background = ColorDrawable(Color.web("#2ECC71"))
-            layoutParams = LayoutParams(width = 100, height = 100)
-        }
-
-        val textview = TextView(this).apply {
-            text = "Hello"
-            textSize =40.0
-            textColor = (Color.web("#FFFFFF"))
+        val statusText = TextView(this).apply {
+            text = "Animation Test"
+            textSize = 20.0
+            textColor = Color.WHITE
             layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
+            onClickListener = View.OnClickListener { view ->
+                println("按钮被点击: $view")
+            }
         }
 
-        val button = Button(this, text = "Hello").apply {
+        val fadeButton = Button(this, text = "Fade In/Out").apply {
             layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
+            setOnClicked {
+                if (animationView.alpha > 0.5) {
+                    val anim = ViewAnimation.fadeOut(animationView, Duration.millis(500.0))
+                    startAnimation(anim, object : AnimationListener {
+                        override fun onAnimationStart(animation: Animation) {
+                            statusText.text = "Fade Out Started"
+                        }
+                        override fun onAnimationEnd(animation: Animation) {
+                            statusText.text = "Fade Out Completed"
+                        }
+                        override fun onAnimationRepeat(animation: Animation) {}
+                    })
+                } else {
+                    val anim = ViewAnimation.fadeIn(animationView, Duration.millis(500.0))
+                    startAnimation(anim, object : AnimationListener {
+                        override fun onAnimationStart(animation: Animation) {
+                            statusText.text = "Fade In Started"
+                        }
+                        override fun onAnimationEnd(animation: Animation) {
+                            statusText.text = "Fade In Completed"
+                        }
+                        override fun onAnimationRepeat(animation: Animation) {}
+                    })
+                }
+            }
         }
 
-        layout.addView(item1)
-        layout.addView(item2)
-        layout.addView(textview)
-        layout.addView(button)
+        val translateButton = Button(this, text = "Translate").apply {
+            layoutParams =LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
+            setOnClicked {
+                val anim = ViewAnimation.translate(
+                    animationView, 
+                    animationView.translateX, 
+                    animationView.translateY, 
+                    animationView.translateX + 50, 
+                    animationView.translateY + 50, 
+                    Duration.millis(500.0)
+                )
+                startAnimation(anim, object : AnimationListener {
+                    override fun onAnimationStart(animation: Animation) {
+                        statusText.text = "Translate Started"
+                    }
+                    override fun onAnimationEnd(animation: Animation) {
+                        statusText.text = "Translate Completed"
+                    }
+                    override fun onAnimationRepeat(animation: Animation) {}
+                })
+            }
+        }
 
+        val scaleButton = Button(this, text = "Scale").apply {
+            layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
+            setOnClicked {
+                val targetScale = if (animationView.scaleX > 1.5) 1.0 else 2.0
+                val anim = ViewAnimation.scale(
+                    animationView, 
+                    animationView.scaleX, 
+                    animationView.scaleY, 
+                    targetScale, 
+                    targetScale, 
+                    Duration.millis(500.0)
+                )
+                startAnimation(anim, object : AnimationListener {
+                    override fun onAnimationStart(animation: Animation) {
+                        statusText.text = "Scale Started"
+                    }
+                    override fun onAnimationEnd(animation: Animation) {
+                        statusText.text = "Scale Completed"
+                    }
+                    override fun onAnimationRepeat(animation: Animation) {}
+                })
+            }
+        }
+
+        val rotateButton = Button(this, text = "Rotate").apply {
+            layoutParams = LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
+            setOnClicked {
+                val anim = ViewAnimation.rotate(
+                    animationView, 
+                    animationView.rotation, 
+                    animationView.rotation + 90, 
+                    Duration.millis(500.0)
+                )
+                startAnimation(anim, object : AnimationListener {
+                    override fun onAnimationStart(animation: Animation) {
+                        statusText.text = "Rotate Started"
+                    }
+                    override fun onAnimationEnd(animation: Animation) {
+                        statusText.text = "Rotate Completed"
+                    }
+                    override fun onAnimationRepeat(animation: Animation) {}
+                })
+            }
+        }
+
+        val resetButton = Button(this, text = "Reset").apply {
+            layoutParams =LayoutParams(width = LayoutParams.WRAP_CONTENT, height = LayoutParams.WRAP_CONTENT)
+            setOnClicked {
+                animationView.alpha = 1.0
+                animationView.translateX = 0.0
+                animationView.translateY = 0.0
+                animationView.scaleX = 1.0
+                animationView.scaleY = 1.0
+                animationView.rotation = 0.0
+                statusText.text = "Reset Completed"
+            }
+        }
+
+       layout.addView(animationView)
+        layout.addView(statusText)
+        layout.addView(fadeButton)
+       layout.addView(translateButton)
+        layout.addView(scaleButton)
+        layout.addView(rotateButton)
+       layout.addView(resetButton)
 
         setContentView(layout)
     }

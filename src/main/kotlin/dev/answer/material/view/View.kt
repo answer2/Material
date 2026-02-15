@@ -4,7 +4,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      https://www.gnu.org/licenses/gpl-3.0.html
+ * https://www.gnu.org/licenses/gpl-3.0.html
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,6 @@
  *
  * Created by AnswerDev
  */
-
 package dev.answer.material.view
 
 import dev.answer.material.content.Context
@@ -23,23 +22,20 @@ import dev.answer.material.view.animation.AnimationListener
 import dev.answer.material.view.animation.ViewAnimation
 import dev.answer.material.view.measure.MeasureSpec
 import javafx.animation.Animation
-import javafx.animation.FadeTransition
 import javafx.animation.ParallelTransition
-import javafx.animation.RotateTransition
-import javafx.animation.ScaleTransition
+import javafx.animation.PauseTransition
 import javafx.animation.SequentialTransition
-import javafx.animation.TranslateTransition
+import javafx.animation.Timeline
+import javafx.event.EventHandler
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.MouseEvent
 import javafx.util.Duration
-import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.TimeUnit
 
 /**
  *
  * @author AnswerDev
  * @date 2026/2/9 00:48
- * @description View
+ * @description View - Fixed Version
  */
 open class View(val context: Context) {
 
@@ -84,6 +80,43 @@ open class View(val context: Context) {
     var scrollX: Double = 0.0
     var scrollY: Double = 0.0
 
+    // 动画属性
+    var alpha: Double = 1.0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var rotation: Double = 0.0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var scaleX: Double = 1.0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var scaleY: Double = 1.0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var translateX: Double = 0.0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
+    var translateY: Double = 0.0
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     // 标签
     var tag: Any? = null
 
@@ -91,23 +124,49 @@ open class View(val context: Context) {
     var parent: View? = null
     protected val children: MutableList<View> = mutableListOf()
 
-    // 事件监听器
+
     var onClickListener: OnClickListener? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                clickable = true
+            }
+        }
+
     var onLongClickListener: OnLongClickListener? = null
+        set(value) {
+            field = value
+            if (value != null) {
+                clickable = true
+            }
+        }
+
     var onTouchListener: OnTouchListener? = null
     var onFocusChangeListener: OnFocusChangeListener? = null
 
     // 长按事件检测相关
     private var longPressTimeout = 500L // 长按超时时间（毫秒）
     private var isLongPressDetected = false
-    private var longPressTimer: ScheduledThreadPoolExecutor? = null
+    private val longPressPause = PauseTransition(Duration.millis(longPressTimeout.toDouble()))
 
     // 触摸事件状态
-    private var isPressed = false
-    private var isHovered = false
+    protected var isPressed = false
+        private set
+    protected var isHovered = false
+        private set
 
     // 动画相关
     private val runningAnimations: MutableList<Animation> = mutableListOf()
+
+
+    init {
+        longPressPause.onFinished = EventHandler {
+            if (isPressed) {
+                isLongPressDetected = true
+                performLongClick()
+            }
+        }
+    }
 
     // 内边距设置方法
     fun setPadding(left: Double, top: Double, right: Double, bottom: Double) {
@@ -138,10 +197,10 @@ open class View(val context: Context) {
     var bottom = 0.0
         protected set
 
-    val width: Double
+    var width: Double = 0.0
         get() = right - left
 
-    val height: Double
+    var height: Double = 0.0
         get() = bottom - top
 
     val x: Double
@@ -159,6 +218,20 @@ open class View(val context: Context) {
     fun measure(widthSpec: Int, heightSpec: Int) {
         onMeasure(widthSpec, heightSpec)
     }
+
+    protected fun resolveSize(desired: Double, measureSpec: Int): Double {
+
+        val mode = MeasureSpec.getMode(measureSpec)
+        val size = MeasureSpec.getSize(measureSpec).toDouble()
+
+        return when (mode) {
+            MeasureSpec.EXACTLY -> size
+            MeasureSpec.AT_MOST -> minOf(desired, size)
+            MeasureSpec.UNSPECIFIED -> desired
+            else -> desired
+        }
+    }
+
 
     // 布局方法
     open fun onLayout(l: Double, t: Double, r: Double, b: Double) {
@@ -178,23 +251,26 @@ open class View(val context: Context) {
     open fun draw(gc: GraphicsContext) {
         if (visibility == GONE) return
 
+        // 保存画布状态
+        gc.save()
+
+        // 应用透明度
+        gc.globalAlpha = alpha
+
+        // 应用变换
+        gc.translate(left + translateX, top + translateY)
+        gc.rotate(rotation)
+        gc.scale(scaleX, scaleY)
+
         // 绘制背景
         background?.draw(
             gc,
-            left,
-            top,
+            0.0,
+            0.0,
             width,
             height
         )
 
-        // 保存画布状态
-        gc.save()
-        gc.translate(
-            left + paddingLeft - scrollX,
-            top + paddingTop - scrollY
-        )
-
-        // 绘制内容
         onDraw(gc)
 
         // 恢复画布状态
@@ -216,7 +292,9 @@ open class View(val context: Context) {
         if (onInterceptTouchEvent(event)) {
             return onTouchEvent(event)
         }
+        // 倒序遍历（处理 Z-order，最上面的 View 先收到事件）
         for (child in children.reversed()) {
+            // 使用全局坐标进行命中测试
             if (child.hitTest(event.x, event.y) && child.dispatchTouchEvent(event)) {
                 return true
             }
@@ -229,61 +307,70 @@ open class View(val context: Context) {
     }
 
     open fun onTouchEvent(event: MouseEvent): Boolean {
-        // 先调用触摸监听器
-        if (onTouchListener != null && onTouchListener!!.onTouch(this, event)) {
+
+        if (visibility != VISIBLE || !enabled) return false
+
+        // 优先处理 TouchListener
+        if (onTouchListener?.onTouch(this, event) == true) {
             return true
         }
 
-        if (clickable || onLongClickListener != null) {
-            when (event.eventType) {
-                MouseEvent.MOUSE_PRESSED -> {
-                    isPressed = true
-                    isLongPressDetected = false
-                    // 启动长按定时器
-                    startLongPressTimer()
-                    return true
-                }
+        // 如果不可点击且没有长按监听，且没有其他交互需求，则不消耗事件
+        if (!clickable && onLongClickListener == null) return false
 
-                MouseEvent.MOUSE_RELEASED -> {
-                    isPressed = false
-                    // 取消长按定时器
-                    cancelLongPressTimer()
-                    // 如果没有检测到长按，则触发点击事件
-                    if (!isLongPressDetected) {
-                        performClick()
-                    }
-                    return true
-                }
+        when (event.eventType) {
 
-                MouseEvent.MOUSE_CLICKED -> {
-                    // 已经在MOUSE_RELEASED中处理了点击事件
-                    return true
-                }
+            MouseEvent.MOUSE_PRESSED -> {
+                // 再次确认点击位置在当前 View 内
+                if (!hitTest(event.x, event.y)) return false
 
-                MouseEvent.MOUSE_ENTERED -> {
-                    isHovered = true
-                    return true
-                }
+                isPressed = true
+                isLongPressDetected = false
+                startLongPressTimer()
 
-                MouseEvent.MOUSE_EXITED -> {
-                    isHovered = false
-                    isPressed = false
-                    // 取消长按定时器
-                    cancelLongPressTimer()
-                    return true
-                }
-
-                MouseEvent.MOUSE_DRAGGED -> {
-                    // 拖动时取消长按
-                    cancelLongPressTimer()
-                    return true
-                }
-
-                else -> {}
+                // 可以添加 invalidate() 来触发重绘以显示按下状态
+                return true
             }
+
+            MouseEvent.MOUSE_RELEASED -> {
+                cancelLongPressTimer()
+
+                val inside = hitTest(event.x, event.y)
+
+                // 修复：必须是 按下状态(isPressed) 且 仍在范围内(inside) 且 未触发长按
+                if (isPressed && inside && !isLongPressDetected) {
+                    performClick()
+                }
+
+                isPressed = false
+                return true
+            }
+
+            MouseEvent.MOUSE_DRAGGED -> {
+                val inside = hitTest(event.x, event.y)
+
+                // 如果拖拽出了 View 的范围
+                if (!inside) {
+                    // 取消长按
+                    cancelLongPressTimer()
+                    // 视作取消点击意图，重置按下状态
+                    isPressed = false
+                }
+                return true
+            }
+
+            MouseEvent.MOUSE_EXITED -> {
+                // 作为一个额外的安全网，鼠标移出也取消状态
+                isPressed = false
+                cancelLongPressTimer()
+            }
+
+            else -> {}
         }
+
         return false
     }
+
 
     // 点击事件
     open fun performClick(): Boolean {
@@ -298,18 +385,12 @@ open class View(val context: Context) {
 
     // 启动长按定时器
     private fun startLongPressTimer() {
-        cancelLongPressTimer() // 先取消之前的定时器
-        longPressTimer = ScheduledThreadPoolExecutor(1)
-        longPressTimer?.schedule({
-            isLongPressDetected = true
-            performLongClick()
-        }, longPressTimeout, TimeUnit.MILLISECONDS)
+        longPressPause.playFromStart()
     }
 
     // 取消长按定时器
     private fun cancelLongPressTimer() {
-        longPressTimer?.shutdownNow()
-        longPressTimer = null
+        longPressPause.stop()
     }
 
     // 焦点管理
@@ -398,9 +479,26 @@ open class View(val context: Context) {
         parent?.requestLayout()
     }
 
-    // 点击测试
+    /**
+     * 获取视图在窗口（场景）中的绝对位置（考虑平移变换）
+     */
+    open fun getLocationInWindow(): Pair<Double, Double> {
+        var x = left + translateX
+        var y = top + translateY
+        var p = parent
+        while (p != null) {
+            x += p.left + p.translateX
+            y += p.top + p.translateY
+            p = p.parent
+        }
+        return x to y
+    }
+
+    // 点击测试（使用场景坐标）
+    // 假设传入的 x,y 是全局/场景坐标
     open fun hitTest(x: Double, y: Double): Boolean {
-        return x >= left && x <= right && y >= top && y <= bottom
+        val (absX, absY) = getLocationInWindow()
+        return x >= absX && x <= absX + width && y >= absY && y <= absY + height
     }
 
     // 生命周期方法
@@ -408,6 +506,8 @@ open class View(val context: Context) {
     open fun onDetach() {
         // 当View分离时，取消所有运行中的动画
         cancelAllAnimations()
+        // 取消长按定时器
+        cancelLongPressTimer()
     }
 
     // 事件回调方法
@@ -418,7 +518,7 @@ open class View(val context: Context) {
         onFocusChangeListener?.onFocusChange(this, gainFocus)
     }
 
-    // 动画相关方法
+    // 动画相关方法 (保持原有逻辑)
 
     /**
      * 启动动画
@@ -466,27 +566,18 @@ open class View(val context: Context) {
         runningAnimations.remove(animation)
     }
 
-    /**
-     * 淡入动画
-     */
-    open fun fadeIn(duration: Duration = Duration.millis(300.0), listener: AnimationListener? = null): FadeTransition {
+    open fun fadeIn(duration: Duration = Duration.millis(300.0), listener: AnimationListener? = null): Timeline {
         val animation = ViewAnimation.fadeIn(this, duration)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 淡出动画
-     */
-    open fun fadeOut(duration: Duration = Duration.millis(300.0), listener: AnimationListener? = null): FadeTransition {
+    open fun fadeOut(duration: Duration = Duration.millis(300.0), listener: AnimationListener? = null): Timeline {
         val animation = ViewAnimation.fadeOut(this, duration)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 平移动画
-     */
     open fun translate(
         fromX: Double,
         fromY: Double,
@@ -494,15 +585,12 @@ open class View(val context: Context) {
         toY: Double,
         duration: Duration = Duration.millis(300.0),
         listener: AnimationListener? = null
-    ): TranslateTransition {
+    ): Timeline {
         val animation = ViewAnimation.translate(this, fromX, fromY, toX, toY, duration)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 缩放动画
-     */
     open fun scale(
         fromX: Double,
         fromY: Double,
@@ -510,59 +598,45 @@ open class View(val context: Context) {
         toY: Double,
         duration: Duration = Duration.millis(300.0),
         listener: AnimationListener? = null
-    ): ScaleTransition {
+    ): Timeline {
         val animation = ViewAnimation.scale(this, fromX, fromY, toX, toY, duration)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 旋转动画
-     */
     open fun rotate(
         fromAngle: Double,
         toAngle: Double,
         duration: Duration = Duration.millis(300.0),
         listener: AnimationListener? = null
-    ): RotateTransition {
+    ): Timeline {
         val animation = ViewAnimation.rotate(this, fromAngle, toAngle, duration)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 并行执行多个动画
-     */
     open fun parallel(vararg animations: Animation, listener: AnimationListener? = null): ParallelTransition {
         val animation = ViewAnimation.parallel(*animations)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 顺序执行多个动画
-     */
     open fun sequential(vararg animations: Animation, listener: AnimationListener? = null): SequentialTransition {
         val animation = ViewAnimation.sequential(*animations)
         startAnimation(animation, listener)
         return animation
     }
 
-    /**
-     * 检查是否有动画正在运行
-     */
     open fun isAnimating(): Boolean {
         return runningAnimations.isNotEmpty()
     }
 
     // 静态常量和内部类
     companion object {
-        // 可见性常量
         const val VISIBLE = 0
         const val INVISIBLE = 1
         const val GONE = 2
 
-        // 焦点方向常量
         const val FOCUS_UP = 0
         const val FOCUS_DOWN = 1
         const val FOCUS_LEFT = 2
@@ -571,23 +645,19 @@ open class View(val context: Context) {
         const val FOCUS_BACKWARD = 5
     }
 
-    // 点击监听器接口
-    interface OnClickListener {
+    fun interface OnClickListener {
         fun onClick(v: View)
     }
 
-    // 长按监听器接口
-    interface OnLongClickListener {
+    fun interface OnLongClickListener {
         fun onLongClick(v: View): Boolean
     }
 
-    // 触摸监听器接口
-    interface OnTouchListener {
+    fun interface OnTouchListener {
         fun onTouch(v: View, event: MouseEvent): Boolean
     }
 
-    // 焦点变化监听器接口
-    interface OnFocusChangeListener {
+    fun interface OnFocusChangeListener {
         fun onFocusChange(v: View, hasFocus: Boolean)
     }
 }
