@@ -20,6 +20,7 @@
 package dev.answer.test.activity
 
 import dev.answer.material.component.MaterialButton
+import dev.answer.material.component.MaterialSwitch
 import dev.answer.material.content.Activity
 import dev.answer.material.graphics.ColorDrawable
 import dev.answer.material.view.Button
@@ -183,6 +184,11 @@ class TestActivity : Activity() {
             }
         }
 
+        val switch = MaterialSwitch(this, false).apply{
+
+        };
+
+
        layout.addView(animationView)
         layout.addView(statusText)
         layout.addView(fadeButton)
@@ -190,6 +196,7 @@ class TestActivity : Activity() {
         layout.addView(scaleButton)
         layout.addView(rotateButton)
        layout.addView(resetButton)
+        layout.addView(switch)
 
         setContentView(layout)
     }

@@ -21,7 +21,6 @@ package dev.answer.material.view
 
 import dev.answer.material.content.Context
 import dev.answer.material.view.measure.MeasureSpec
-import javafx.scene.canvas.GraphicsContext
 
 /**
  *
@@ -36,8 +35,8 @@ open class ViewGroup(context: Context) : View(context) {
         measureChildren(widthSpec, heightSpec)
 
         // 计算当前 ViewGroup 的测量大小
-        val width = getDefaultSize(suggestedMinimumWidth, widthSpec)
-        val height = getDefaultSize(suggestedMinimumHeight, heightSpec)
+        val width = getDefaultSize(minimumWidth, widthSpec)
+        val height = getDefaultSize(minimumHeight, heightSpec)
 
         measuredWidth = width
         measuredHeight = height
@@ -117,18 +116,18 @@ open class ViewGroup(context: Context) : View(context) {
         // 子类覆盖
     }
 
-    override val suggestedMinimumWidth: Int
+    override var minimumWidth: Int = 0
         get() {
-            var minWidth = super.suggestedMinimumWidth
+            var minWidth = super.minimumWidth
             for (child in children) {
                 minWidth = Math.max(minWidth, (child.measuredWidth + child.layoutParams.marginLeft + child.layoutParams.marginRight).toInt())
             }
             return minWidth
         }
 
-    override val suggestedMinimumHeight: Int
+    override var minimumHeight: Int = 0
         get() {
-            var minHeight = super.suggestedMinimumHeight
+            var minHeight = super.minimumHeight
             for (child in children) {
                 minHeight = Math.max(minHeight, (child.measuredHeight + child.layoutParams.marginTop + child.layoutParams.marginBottom).toInt())
             }

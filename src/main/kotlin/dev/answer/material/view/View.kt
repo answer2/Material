@@ -39,6 +39,7 @@ import javafx.util.Duration
  */
 open class View(val context: Context) {
 
+
     // 布局参数
     var layoutParams: LayoutParams = LayoutParams()
     var background: Drawable? = null
@@ -52,6 +53,9 @@ open class View(val context: Context) {
     var paddingTop = 0.0
     var paddingRight = 0.0
     var paddingBottom = 0.0
+
+     var minHeight: Double = 0.0
+     var minWidth: Double = 0.0
 
     // 可见性
     var visibility: Int = VISIBLE
@@ -210,8 +214,11 @@ open class View(val context: Context) {
 
     // 测量方法
     open fun onMeasure(widthSpec: Int, heightSpec: Int) {
-        measuredWidth = getDefaultSize(suggestedMinimumWidth, widthSpec)
-        measuredHeight = getDefaultSize(suggestedMinimumHeight, heightSpec)
+        val desiredWidth = minimumWidth + paddingLeft + paddingRight
+        val desiredHeight = minimumHeight + paddingTop + paddingBottom
+
+        measuredWidth = resolveSize(desiredWidth, widthSpec)
+        measuredHeight = resolveSize(desiredHeight, heightSpec)
     }
 
     fun measure(widthSpec: Int, heightSpec: Int) {
@@ -461,11 +468,9 @@ open class View(val context: Context) {
         }
     }
 
-    open val suggestedMinimumWidth: Int
-        get() = 0
+    open var minimumWidth: Int = 0
 
-    open val suggestedMinimumHeight: Int
-        get() = 0
+    open var minimumHeight: Int = 0
 
     // 无效化和请求布局
     open fun invalidate() {
