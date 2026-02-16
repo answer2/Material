@@ -19,14 +19,23 @@
 
 package dev.answer.material.theme
 
+import dev.answer.material.desgin.hct.Hct
+
 /**
  *
  * @author AnswerDev
  * @date 2026/2/15 02:33
  * @description Theme
  */
-data class Theme(
-    val colorScheme: ColorScheme,
+class Theme(
+    val colorScheme: ColorPalette,
     val typography: Typography,
-    val shapes: ShapeSystem
+    val shapes: Shapes
 )
+
+
+data class ThemeState(
+    val hct: Hct,
+    val darkMode: Boolean
+)
+

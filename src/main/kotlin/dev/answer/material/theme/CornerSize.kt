@@ -22,24 +22,26 @@ package dev.answer.material.theme
 /**
  *
  * @author AnswerDev
- * @date 2026/2/15 02:35
- * @description MaterialThemes
+ * @date 2026/2/17 02:10
+ * @description CornerSize
  */
-object MaterialThemes {
 
-//    fun light(): Theme {
-//        return Theme(
-//            colorScheme = LightColorScheme.create(),
-//            typography = DefaultTypography.create(),
-//            shapes = DefaultShapes.create()
-//        )
-//    }
-//
-//    fun dark(): Theme {
-//        return Theme(
-//            colorScheme = DarkColorScheme.create(),
-//            typography = DefaultTypography.create(),
-//            shapes = DefaultShapes.create()
-//        )
-//    }
+interface CornerSize {
+    fun toPx(width: Double, height: Double): Double
+}
+
+class FixedCornerSize(
+    private val dp: Double
+) : CornerSize {
+    override fun toPx(width: Double, height: Double): Double {
+        return dp
+    }
+}
+
+class PercentCornerSize(
+    private val percent: Double
+) : CornerSize {
+    override fun toPx(width: Double, height: Double): Double {
+        return minOf(width, height) * percent
+    }
 }

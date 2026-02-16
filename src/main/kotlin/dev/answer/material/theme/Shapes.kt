@@ -22,11 +22,30 @@ package dev.answer.material.theme
 /**
  *
  * @author AnswerDev
- * @date 2026/2/15 02:34
- * @description ShapeSystem
+ * @date 2026/2/17 02:11
+ * @description Shapes
  */
-data class ShapeSystem(
-    val smallCorner: Float,
-    val mediumCorner: Float,
-    val largeCorner: Float
-)
+
+data class Shapes(
+    val extraSmall: Shape,
+    val small: Shape,
+    val medium: Shape,
+    val large: Shape,
+    val extraLarge: Shape,
+    val full: Shape
+) {
+
+    companion object {
+
+        fun default(): Shapes {
+            return Shapes(
+                extraSmall = Shape.rounded(4.0),
+                small = Shape.rounded(8.0),
+                medium = Shape.rounded(12.0),
+                large = Shape.rounded(16.0),
+                extraLarge = Shape.rounded(28.0),
+                full = Shape.full()
+            )
+        }
+    }
+}

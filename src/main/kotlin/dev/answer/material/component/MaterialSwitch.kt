@@ -20,6 +20,7 @@
 package dev.answer.material.component
 
 import dev.answer.material.content.Context
+import dev.answer.material.theme.ColorPalette
 import dev.answer.material.view.View
 import javafx.animation.Interpolator
 import javafx.animation.Transition
@@ -52,10 +53,6 @@ class MaterialSwitch(
         height = 32.0
         clickable = true
     }
-
-    // ------------------------
-    // 动画系统
-    // ------------------------
 
     private fun animate(
         from: Double,
@@ -95,20 +92,19 @@ class MaterialSwitch(
         }
     }
 
-    // ------------------------
-    // 绘制
-    // ------------------------
 
     override fun onDraw(gc: GraphicsContext) {
 
         val radius = height
 
-        val surface = Color.web("#E7E0EC")
-        val outline = Color.web("#79747E")
-        val primary = Color.web("#6750A4")
-        val primaryContainer = Color.web("#EADDFF")
-        val onSurface = Color.web("#1D1B20")
-        val onPrimary = Color.WHITE
+        val palette: ColorPalette = context.colorScheme
+
+        val surface = palette.surface
+        val outline = palette.outline
+        val primary = palette.primary
+        val primaryContainer = palette.primaryContainer
+        val onSurface = palette.onSurface
+        val onPrimary = palette.onPrimary
 
         // 背景轨道
         gc.fill = surface
@@ -171,14 +167,10 @@ class MaterialSwitch(
 
     override fun onMeasure(widthSpec: Int, heightSpec: Int) {
         minimumWidth= 52
-
         minimumHeight = 32
 
         super.onMeasure(widthSpec, heightSpec)
-
     }
-
-
 
     override fun onTouchEvent(event: MouseEvent): Boolean {
 
@@ -200,8 +192,8 @@ class MaterialSwitch(
 
             MouseEvent.MOUSE_RELEASED -> {
                 if (pressed) {
-                    checked = !checked
-                    animateEnable(checked)
+                    val newChecked = !checked
+                    setChecked(newChecked)
                 }
 
                 pressed = false
@@ -214,4 +206,25 @@ class MaterialSwitch(
     }
 
     fun isChecked() = checked
+
+    private var onCheckedChangeListener: ((Boolean) -> Unit)? = null
+
+    fun setOnCheckedChangeListener(listener: (Boolean) -> Unit) {
+        onCheckedChangeListener = listener
+    }
+    fun setChecked(value: Boolean, animate: Boolean = true) {
+        if (checked == value) return
+
+        checked = value
+
+        if (animate) {
+            animateEnable(value)
+        } else {
+            enableProgress = if (value) 1.0 else 0.0
+            invalidate()
+        }
+
+        onCheckedChangeListener?.invoke(checked)
+    }
+
 }

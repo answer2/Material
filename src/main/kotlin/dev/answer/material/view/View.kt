@@ -18,6 +18,7 @@ package dev.answer.material.view
 
 import dev.answer.material.content.Context
 import dev.answer.material.graphics.Drawable
+import dev.answer.material.theme.MaterialComponent
 import dev.answer.material.view.animation.AnimationListener
 import dev.answer.material.view.animation.ViewAnimation
 import dev.answer.material.view.measure.MeasureSpec
@@ -37,10 +38,8 @@ import javafx.util.Duration
  * @date 2026/2/9 00:48
  * @description View - Fixed Version
  */
-open class View(val context: Context) {
+open class View(val context: Context) : MaterialComponent(context.themeManager) {
 
-
-    // 布局参数
     var layoutParams: LayoutParams = LayoutParams()
     var background: Drawable? = null
         set(value) {
@@ -148,6 +147,14 @@ open class View(val context: Context) {
     var onTouchListener: OnTouchListener? = null
     var onFocusChangeListener: OnFocusChangeListener? = null
 
+    fun setOnClicked(action: () -> Unit) {
+        onClickListener = object : View.OnClickListener {
+            override fun onClick(v: View) {
+                action()
+            }
+        }
+    }
+
     // 长按事件检测相关
     private var longPressTimeout = 500L // 长按超时时间（毫秒）
     private var isLongPressDetected = false
@@ -237,6 +244,22 @@ open class View(val context: Context) {
             else -> desired
         }
     }
+
+     fun destroy() {
+
+        cancelAllAnimations()
+
+        cancelLongPressTimer()
+
+        onDestroy()
+
+        children.forEach { it.destroy() }
+        children.clear()
+        parent = null
+    }
+
+    protected open fun onDestroy() {}
+
 
 
     // 布局方法
@@ -473,7 +496,7 @@ open class View(val context: Context) {
     open var minimumHeight: Int = 0
 
     // 无效化和请求布局
-    open fun invalidate() {
+    override fun invalidate() {
         // 通知父视图需要重绘
         parent?.invalidate()
     }

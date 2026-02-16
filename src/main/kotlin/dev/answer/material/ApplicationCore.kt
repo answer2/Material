@@ -31,7 +31,7 @@ import dev.answer.test.activity.TestActivity
  */
 open class ApplicationCore : ContextImpl() {
 
-    override var mResource: Resources =
+    override var resources: Resources =
         Resources(ApplicationCore::class.java)
 
     open fun onCreate() {

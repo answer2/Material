@@ -19,30 +19,26 @@
 
 package dev.answer.material.theme
 
-import javafx.scene.paint.Color
-
 /**
  *
  * @author AnswerDev
- * @date 2026/2/15 02:33
- * @description ColorScheme
+ * @date 2026/2/17 02:16
+ * @description MaterialComponent
  */
-data class ColorScheme(
+abstract class MaterialComponent(
+    private val themeManager: ThemeManager
+) : ThemeObserver {
 
-    val primary: Color,
-    val onPrimary: Color,
+    protected lateinit var theme: Theme
 
-    val primaryContainer: Color,
-    val onPrimaryContainer: Color,
+    init {
+        themeManager.addObserver(this)
+    }
 
-    val secondary: Color,
-    val secondaryContainer: Color,
-    val onSecondaryContainer: Color,
+    override fun onThemeChanged(theme: Theme) {
+        this.theme = theme
+        invalidate()
+    }
 
-    val surface: Color,
-    val surfaceContainerLow: Color,
-    val surfaceContainerHigh: Color,
-
-    val outline: Color,
-    val error: Color
-)
+    abstract fun invalidate()
+}

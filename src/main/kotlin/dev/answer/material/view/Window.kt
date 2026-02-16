@@ -27,6 +27,7 @@ import javafx.scene.Scene
  */
 class Window {
 
+    private lateinit var viewRoot: ViewRoot
     private val stage = Stage()
 
     var width: Double = 0.0
@@ -34,7 +35,7 @@ class Window {
     var title : String = "Title"
 
     fun setContent(view: View) {
-        val viewRoot = ViewRoot(view)
+         viewRoot = ViewRoot(view)
         val hybridRoot = HybridRoot(viewRoot)
         stage.scene = Scene(hybridRoot)
     }
@@ -47,6 +48,10 @@ class Window {
     }
 
     fun close() {
+        if (::viewRoot.isInitialized) {
+            viewRoot.destroy()
+        }
+
         stage.close()
     }
 }

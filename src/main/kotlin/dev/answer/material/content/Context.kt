@@ -17,7 +17,14 @@
 
 package dev.answer.material.content
 
+import dev.answer.material.desgin.hct.Hct
 import dev.answer.material.manager.ActivityManager
+import dev.answer.material.theme.ColorPalette
+import dev.answer.material.theme.Shapes
+import dev.answer.material.theme.Theme
+import dev.answer.material.theme.ThemeManager
+import dev.answer.material.theme.ThemeState
+import dev.answer.material.theme.Typography
 
 /**
  *
@@ -25,25 +32,36 @@ import dev.answer.material.manager.ActivityManager
  * @date 2026/2/9 00:30
  * @description Context
  */
-abstract class Context() {
-    abstract var mResource : Resources;
+abstract class Context {
 
-    protected fun Context(){
+    abstract val resources: Resources
 
+    val themeManager: ThemeManager by lazy {
+        ThemeManager(
+            ThemeState(
+                hct = Hct.fromInt(0x6750A4),
+                darkMode = false
+            )
+        )
     }
 
-    fun startActivity(){
+    val theme: Theme
+        get() = themeManager.theme
 
-    }
+    val colorScheme: ColorPalette
+        get() = theme.colorScheme
 
-    fun <T : Activity> startActivity(
-        activityClass: Class<T>
-    ) {
+    val typography: Typography
+        get() = theme.typography
+
+    val shapes: Shapes
+        get() = theme.shapes
+
+    fun <T : Activity> startActivity(activityClass: Class<T>) {
         ActivityManager.startActivity(this, activityClass)
     }
 
     open fun finish() {
         ActivityManager.finishActivity()
     }
-
 }

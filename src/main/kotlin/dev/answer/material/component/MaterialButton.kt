@@ -21,18 +21,13 @@ package dev.answer.material.component
 
 import dev.answer.material.content.Context
 import dev.answer.material.graphics.RippleDrawable
+import dev.answer.material.theme.ColorPalette
 import dev.answer.material.view.View
-import dev.answer.material.view.animation.PressAnimation
-import javafx.animation.Interpolator
-import javafx.animation.Transition
 import javafx.scene.canvas.GraphicsContext
 import javafx.scene.input.MouseEvent
 import javafx.scene.paint.Color
 import javafx.scene.text.Font
 import javafx.scene.text.TextAlignment
-import javafx.util.Duration
-import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.math.sqrt
 
 /**
  *
@@ -43,20 +38,14 @@ import kotlin.math.sqrt
 class MaterialButton(
     context: Context,
     private val text: String,
-    private val style: Style = Style.FILLED
+    private val style: Style = Style.FILLED,
 ) : View(context) {
 
-    // 1. 实例化 RippleDrawable，传入 invalidate() 作为回调
     private val rippleDrawable = RippleDrawable { this.invalidate() }
     init {
         clickable = true
     }
 
-    fun setOnClicked(action: () -> Unit) {
-        onClickListener = OnClickListener {
-            action()
-        }
-    }
 
     private val textNode = javafx.scene.text.Text()
 
@@ -81,14 +70,12 @@ class MaterialButton(
 
     override fun onDraw(gc: GraphicsContext) {
         val colors = getColors()
-        val cornerRadius = 25.0
+        val cornerRadius = height
 
         // 绘制背景
         gc.fill = colors.first
         gc.fillRoundRect(0.0, 0.0, width, height, cornerRadius, cornerRadius)
 
-        // 2. 配置并绘制 Ripple
-        // 通常 Ripple 颜色与文本颜色一致（即前景色）
         rippleDrawable.color = colors.second
         rippleDrawable.draw(gc, width, height, cornerRadius)
 
@@ -102,12 +89,11 @@ class MaterialButton(
     override fun onTouchEvent(event: MouseEvent): Boolean {
         when (event.eventType) {
             MouseEvent.MOUSE_PRESSED -> {
-                // --- 核心修复：坐标转换 ---
+
                 val (absX, absY) = getLocationInWindow()
                 val localX = event.x - absX
                 val localY = event.y - absY
 
-                // 传入转换后的局部坐标
                 rippleDrawable.trigger(localX, localY, width, height)
                 return true
             }
@@ -119,16 +105,20 @@ class MaterialButton(
         return super.onTouchEvent(event)
     }
     private fun getColors(): Pair<Color, Color> {
-        return when (style) {
-            Style.FILLED -> Color.web("#6750A4") to Color.WHITE
-            Style.ELEVATED -> Color.web("#F6F0FF") to Color.web("#6750A4")
-            Style.TONAL -> Color.web("#E8DEF8") to Color.web("#1D192B")
+        val palette: ColorPalette = context.colorScheme
+
+        if (palette != null) {
+            return when (style) {
+                Style.FILLED -> palette.surfaceContainerLow to palette.primary
+                Style.ELEVATED ->  palette.primary to palette.onPrimary
+                Style.TONAL ->palette.secondaryContainer to palette.onSecondaryContainer
+            }
         }
+        return Color.RED to Color.RED
     }
 
-    // 根据文本颜色推断水波纹颜色（通常是文本颜色的半透明版）
     private fun getRippleColor(textColor: Color): Color {
-        return textColor.deriveColor(0.0, 1.0, 1.0, 1.0) // 基础颜色，透明度在绘制时控制
+        return textColor.deriveColor(0.0, 1.0, 1.0, 1.0)
     }
 
     enum class Style {

@@ -96,14 +96,6 @@ class Button(
         measuredHeight = resolveSize(desiredHeight, heightSpec)
     }
 
-    fun setOnClicked(action: () -> Unit) {
-        onClickListener = object : View.OnClickListener {
-            override fun onClick(v: View) {
-                action()
-            }
-        }
-    }
-
     override fun onTouchEvent(event: MouseEvent): Boolean {
 
         when (event.eventType) {

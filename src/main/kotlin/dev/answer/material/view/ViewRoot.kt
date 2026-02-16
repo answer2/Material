@@ -31,7 +31,7 @@ import javafx.scene.input.MouseEvent
  */
 
 class ViewRoot(
-    private val rootView: View
+     private val rootView: View
 ) : Canvas() {
 
     init {
@@ -45,9 +45,10 @@ class ViewRoot(
         }
     }
 
-    /**
-     * 绑定 invalidate 和 requestLayout 到 ViewRoot
-     */
+    fun destroy() {
+        rootView.destroy()
+    }
+
     private fun attachRoot() {
         rootView.parent = object : View(rootView.context) {
 

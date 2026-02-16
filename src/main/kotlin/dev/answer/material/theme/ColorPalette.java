@@ -176,7 +176,7 @@ public class ColorPalette {
         int green = ColorUtils.greenFromArgb(argb);
         int blue = ColorUtils.blueFromArgb(argb);
 
-        return Color.color(red, green, blue);
+        return Color.rgb(red, green, blue);
     }
 
     public boolean isDarkMode() {

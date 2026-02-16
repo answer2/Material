@@ -49,7 +49,7 @@ class MainActivity : Activity() {
         layout.background = ColorDrawable(Color.web("#3498DB"))
         layout.setPadding(16.0)
 
-        val path = mResource.load("logo.png");
+        val path = resources.load("logo.png");
         val icon = ImageDrawable.Companion.fromPath(path)
 println(path)
 

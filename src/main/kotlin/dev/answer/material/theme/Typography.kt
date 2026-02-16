@@ -32,4 +32,16 @@ data class Typography(
     val titleMedium: Font,
     val labelLarge: Font,
     val bodyMedium: Font
-)
+){
+    companion object {
+
+        fun default(): Typography {
+            return Typography(
+                displayLarge = Font.font("System", 57.0),
+                titleMedium = Font.font("System", 16.0),
+                labelLarge = Font.font("System", 14.0),
+                bodyMedium = Font.font("System", 14.0)
+            )
+        }
+    }
+}

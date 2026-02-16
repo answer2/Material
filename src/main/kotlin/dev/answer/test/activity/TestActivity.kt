@@ -185,7 +185,7 @@ class TestActivity : Activity() {
         }
 
         val switch = MaterialSwitch(this, false).apply{
-
+            setOnCheckedChangeListener { bool -> println("Switch state is ${bool}") }
         };
 
 

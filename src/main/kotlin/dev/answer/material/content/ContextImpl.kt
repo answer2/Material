@@ -29,11 +29,11 @@ open class ContextImpl : Context() {
 
     private lateinit var mBaseContext : Context;
 
-    override lateinit var mResource: Resources;
+    override lateinit var resources: Resources;
 
     private  fun setBaseContext(context : Context){
         mBaseContext = context
-        mResource =  mBaseContext.mResource
+        resources =  mBaseContext.resources
 
     }
 }
