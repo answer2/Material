@@ -53,7 +53,7 @@ class TestActivity : Activity() {
         setWindowSize(400.0, 600.0)
 
         val layout = LinearView(this, Orientation.VERTICAL)
-        layout.layoutParams  = LayoutParams(width = 400, height = 600)
+        layout.layoutParams  = LayoutParams(width = LayoutParams.MATCH_PARENT , height =  LayoutParams.MATCH_PARENT)
         layout.background = ColorDrawable(Color.web("#2C3E50"))
         layout.spacing = 10.0
         layout.setPadding(10.0)
@@ -196,6 +196,28 @@ class TestActivity : Activity() {
 
         val emailLayout = TextInputEditText(this, hint = "邮箱地址")
 
+        val layout2 = LinearView(this, Orientation.VERTICAL).apply{
+            layoutParams  = LayoutParams(width = 100, height = 100)
+            background = ColorDrawable(Color.web("#E74C3C"))
+            spacing = 10.0
+            setPadding(10.0)
+        }
+        val layout3 = LinearView(this, Orientation.VERTICAL).apply{
+            layoutParams  = LayoutParams(width = 70, height = 70)
+            background = ColorDrawable(Color.web("#2C3B5C"))
+            spacing = 10.0
+            setPadding(10.0)
+        }
+        val layout4 = LinearView(this, Orientation.VERTICAL).apply{
+            layoutParams  = LayoutParams(width = 40, height = 40)
+            background = ColorDrawable(Color.web("#8C3D5A"))
+            spacing = 10.0
+            setPadding(10.0)
+        }
+
+
+
+
        layout.addView(animationView)
         layout.addView(statusText)
         layout.addView(fadeButton)
@@ -206,6 +228,12 @@ class TestActivity : Activity() {
         layout.addView(switch)
         layout.addView(slider)
         layout.addView(emailLayout)
+
+
+        layout.addView(layout2)
+        layout2.addView(layout3)
+        layout3.addView(layout4)
+
 
         setContentView(layout)
     }

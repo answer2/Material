@@ -179,6 +179,7 @@ class TextInputLayout(
 
         measuredWidth  = resolveSize(availW, widthSpec)
         measuredHeight = resolveSize(editText.measuredHeight.toDouble(), heightSpec)
+        super.onMeasure(widthSpec, heightSpec)
     }
 
     override fun onLayout(l: Double, t: Double, r: Double, b: Double) {
@@ -196,11 +197,6 @@ class TextInputLayout(
             iconButton.layout(etW, iconTop, etW + iconW, iconTop + 40.0)
         }
     }
-
-    // =====================================================================
-    // 不需要自己画，子 View 会画自己
-    // =====================================================================
-    override fun onDraw(gc: GraphicsContext) { /* nothing */ }
 
     // =====================================================================
     // 便捷工厂方法
@@ -228,6 +224,7 @@ private class IconButton(context: Context) : View(context) {
     }
 
     override fun onDraw(gc: GraphicsContext) {
+        super.onDraw(gc)
         val cx = width  / 2.0
         val cy = height / 2.0
         val r  = 9.0

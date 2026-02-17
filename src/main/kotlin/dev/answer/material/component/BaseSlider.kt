@@ -486,7 +486,7 @@ class BaseSlider(
                     setValue(denormalizeValue(snapToStep(progress)), animate = true)
                     // 松手后主动清除焦点：拖拽结束即视为交互完成，
                     // 防止 halo 在点击空白区域时无法消除
-                    clearFocus()
+//                    clearFocus()
                     invalidate()
                 }
                 return true
@@ -494,7 +494,7 @@ class BaseSlider(
             MouseEvent.MOUSE_EXITED -> {
                 // 鼠标移出：如果正在拖拽则取消并清焦点
                 if (isDragging) {
-                    isDragging = false
+//                    isDragging = false
                     animateBubble(false)
                     setValue(denormalizeValue(snapToStep(progress)), animate = true)
                     clearFocus()

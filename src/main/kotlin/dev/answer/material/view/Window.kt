@@ -38,11 +38,12 @@ class Window {
     var width: Double = 0.0
     var height: Double = 0.0
     var title : String = "Title"
-
+    lateinit var baseBridge : TextField;
 
     fun setContent(view: View) {
         viewRoot = ViewRoot(view)
         val hybridRoot = HybridRoot(viewRoot)
+         baseBridge = hybridRoot.imeBridge;
         val scene = Scene(hybridRoot)
         stage.scene = scene
 

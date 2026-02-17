@@ -29,6 +29,7 @@ import javafx.animation.SequentialTransition
 import javafx.animation.Timeline
 import javafx.event.EventHandler
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.control.TextField
 import javafx.scene.input.InputMethodEvent
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
@@ -41,6 +42,7 @@ import javafx.util.Duration
  * @description View - Fixed Version
  */
 open class View(val context: Context) : MaterialComponent(context.themeManager) {
+
 
     var layoutParams: LayoutParams = LayoutParams()
     var background: Drawable? = null
@@ -279,36 +281,45 @@ open class View(val context: Context) : MaterialComponent(context.themeManager) 
     // 绘制方法
     open fun onDraw(gc: GraphicsContext) {}
 
+    // In dev.answer.material.view.View
+
     open fun draw(gc: GraphicsContext) {
         if (visibility == GONE) return
 
-        // 保存画布状态
+        // 1. 保存父级画布状态（必须第一步）
         gc.save()
 
-        // 应用透明度
+        // 2. 应用透明度
         gc.globalAlpha = alpha
 
-        // 应用变换
+        // 3. 坐标系平移（关键）：将原点移动到当前 View 的 (left, top)
+        // 此时 (0,0) 就变成了当前 View 的左上角
         gc.translate(left + translateX, top + translateY)
+
+        // 应用旋转和缩放（以中心点或左上角为锚点，视需求而定，这里保持你原有的逻辑）
         gc.rotate(rotation)
         gc.scale(scaleX, scaleY)
 
-        // 绘制背景
-        background?.draw(
-            gc,
-            0.0,
-            0.0,
-            width,
-            height
-        )
+        // 4. 绘制背景（背景覆盖整个 View）
+        background?.draw(gc, 0.0, 0.0, width, height)
 
+        // 调用自定义绘制
         onDraw(gc)
 
-        // 恢复画布状态
-        gc.restore()
+        // 5. 【新增】裁剪限制 (Clipping)
+        // 这一步限制了后续的所有绘制（包括子 View）只能在当前 View 的宽高范围内显示
+        // 解决了 "大小需要限制在 a 下面" 的问题
+        gc.beginPath()
+        gc.rect(0.0, 0.0, width, height)
+        gc.clip()
 
-        // 绘制子视图
+        // 6. 【修复】绘制子视图
+        // 必须在 gc.restore() 之前调用！
+        // 这样子 View 才能继承当前 View 的坐标系平移
         drawChildren(gc)
+
+        // 7. 恢复画布状态（回到父级的坐标系）
+        gc.restore()
     }
 
     // 绘制子视图

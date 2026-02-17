@@ -22,6 +22,7 @@ package dev.answer.material.view
 import dev.answer.material.view.measure.MeasureSpec
 import javafx.event.EventHandler
 import javafx.scene.canvas.Canvas
+import javafx.scene.control.TextField
 import javafx.scene.input.InputMethodEvent
 import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
@@ -49,15 +50,6 @@ class ViewRoot(
         addEventHandler(MouseEvent.ANY) { event ->
             rootView.dispatchTouchEvent(event)
         }
-
-//        addEventHandler(KeyEvent.ANY) { event ->
-//            rootView.dispatchKeyEvent(event)
-//        }
-
-//        addEventHandler(InputMethodEvent.INPUT_METHOD_TEXT_CHANGED){ event ->
-//            println(event.toString() +"")
-//               rootView.dispatchInputMethodEvent(event)
-//        }
     }
 
     fun requestFocus(view: View) {

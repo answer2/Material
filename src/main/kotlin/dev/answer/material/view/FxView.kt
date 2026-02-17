@@ -66,7 +66,6 @@ class FxView(
 class HybridRoot(
     private val viewRoot: ViewRoot
 ) : Pane() {
-
      val imeBridge = TextField().apply {
         opacity = 0.0
         isFocusTraversable = true
