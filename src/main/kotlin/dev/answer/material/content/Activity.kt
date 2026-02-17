@@ -22,6 +22,7 @@ package dev.answer.material.content
 import dev.answer.material.manager.ActivityManager
 import dev.answer.material.view.View
 import dev.answer.material.view.Window
+import javafx.stage.Stage
 
 /**
  *
@@ -37,6 +38,14 @@ import dev.answer.material.view.Window
     protected open fun onStart() {}
     protected open fun onStop() {}
     protected open fun onDestroy() {}
+
+    protected fun getStage(): Stage {
+        return mWindow.stage;
+    }
+
+    internal fun getWindow(): Window {
+        return mWindow
+    }
 
 
     protected fun setTitle(title : String){

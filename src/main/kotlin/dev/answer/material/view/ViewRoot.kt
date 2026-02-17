@@ -20,7 +20,10 @@
 package dev.answer.material.view
 
 import dev.answer.material.view.measure.MeasureSpec
+import javafx.event.EventHandler
 import javafx.scene.canvas.Canvas
+import javafx.scene.input.InputMethodEvent
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 
 /**
@@ -31,11 +34,14 @@ import javafx.scene.input.MouseEvent
  */
 
 class ViewRoot(
-     private val rootView: View
+     val rootView: View,
 ) : Canvas() {
+
+    private var focusedView: View? = null
 
     init {
         attachRoot()
+        isFocusTraversable = true
 
         widthProperty().addListener { _, _, _ -> requestLayoutAndDraw() }
         heightProperty().addListener { _, _, _ -> requestLayoutAndDraw() }
@@ -43,6 +49,40 @@ class ViewRoot(
         addEventHandler(MouseEvent.ANY) { event ->
             rootView.dispatchTouchEvent(event)
         }
+
+//        addEventHandler(KeyEvent.ANY) { event ->
+//            rootView.dispatchKeyEvent(event)
+//        }
+
+//        addEventHandler(InputMethodEvent.INPUT_METHOD_TEXT_CHANGED){ event ->
+//            println(event.toString() +"")
+//               rootView.dispatchInputMethodEvent(event)
+//        }
+    }
+
+    fun requestFocus(view: View) {
+        if (focusedView == view) return
+
+        focusedView?.clearFocus()
+        focusedView = view
+        focusedView?.requestFocus()
+    }
+
+    fun clearFocus(view: View) {
+        if (focusedView == view) {
+            focusedView?.clearFocus()
+            focusedView = null
+        }
+    }
+
+    fun dispatchKeyPressed(event: KeyEvent) {
+        focusedView?.onKeyPressed(event)
+            ?: rootView.onKeyPressed(event)
+    }
+
+    fun dispatchKeyReleased(event: KeyEvent) {
+        focusedView?.onKeyReleased(event)
+            ?: rootView.onKeyReleased(event)
     }
 
     fun destroy() {

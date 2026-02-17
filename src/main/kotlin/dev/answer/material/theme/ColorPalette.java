@@ -170,6 +170,7 @@ public class ColorPalette {
         return argbToColor(colors.outlineVariant().getArgb(scheme));
     }
 
+
     private Color argbToColor(int argb) {
 
         int red = ColorUtils.redFromArgb(argb);

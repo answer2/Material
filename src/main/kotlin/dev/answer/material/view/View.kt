@@ -29,6 +29,8 @@ import javafx.animation.SequentialTransition
 import javafx.animation.Timeline
 import javafx.event.EventHandler
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.input.InputMethodEvent
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.MouseEvent
 import javafx.util.Duration
 
@@ -66,7 +68,7 @@ open class View(val context: Context) : MaterialComponent(context.themeManager) 
         }
 
     // 状态
-    var enabled: Boolean = true
+    open var enabled: Boolean = true
         set(value) {
             if (field != value) {
                 field = value
@@ -316,14 +318,21 @@ open class View(val context: Context) : MaterialComponent(context.themeManager) 
         }
     }
 
-    // 事件处理
     open fun dispatchTouchEvent(event: MouseEvent): Boolean {
         if (onInterceptTouchEvent(event)) {
             return onTouchEvent(event)
         }
-        // 倒序遍历（处理 Z-order，最上面的 View 先收到事件）
+
+        // 当手指/鼠标按下时，清除不在点击路径上的焦点持有者
+        if (event.eventType == MouseEvent.MOUSE_PRESSED) {
+            val root = getRoot()
+            val currentFocused = root.findFocus()
+            if (currentFocused != null && !currentFocused.hitTest(event.x, event.y)) {
+                currentFocused.clearFocus()
+            }
+        }
+
         for (child in children.reversed()) {
-            // 使用全局坐标进行命中测试
             if (child.hitTest(event.x, event.y) && child.dispatchTouchEvent(event)) {
                 return true
             }
@@ -399,6 +408,94 @@ open class View(val context: Context) : MaterialComponent(context.themeManager) 
 
         return false
     }
+
+     open fun onKeyPressed(event: KeyEvent) {
+    }
+
+    open fun onKeyReleased(event: KeyEvent) {
+    }
+
+    open fun onKeyTypeInput(event: KeyEvent){
+
+    }
+
+        var onKeyListener: OnKeyListener? = null
+
+        open fun dispatchKeyEvent(event: KeyEvent): Boolean {
+            // 1. 如果设置了 OnKeyListener，优先询问它 (允许拦截)
+            if (onKeyListener?.onKey(this, event) == true) {
+                return true
+            }
+
+            // 2. 如果当前 View 拥有焦点，则由自己处理
+            if (hasFocus) {
+                if (event.eventType == KeyEvent.KEY_PRESSED) {
+                    onKeyPressed(event)
+                }else if (event.eventType == KeyEvent.KEY_RELEASED) {
+                    onKeyReleased(event)
+                }else if (event.eventType == KeyEvent.KEY_TYPED) {
+                    onKeyTypeInput(event)
+                }
+                return true // 消费事件
+            }
+
+            // 3. 如果自己没有焦点，但有子视图，递归向下分发
+            // 只有当焦点在子视图中时，才需要向下传递
+            for (child in children) {
+                // 优化：只有当子View可能有焦点时才分发（或者直接递归寻找）
+                // 这里采用递归分发，如果子View处理了（返回true），则停止分发
+                if (child.dispatchKeyEvent(event)) {
+                    return true
+                }
+            }
+
+            return false
+        }
+
+    open fun onInputMethodEvent(event: InputMethodEvent) {
+
+    }
+
+    open fun dispatchInputMethodEvent(event: InputMethodEvent): Boolean {
+        // 1. 如果当前 View 有焦点，优先自己处理
+        if (hasFocus) {
+            onInputMethodEvent(event)
+            return true
+        }
+
+        // 2. 向子 View 分发
+        for (child in children) {
+            if (child.dispatchInputMethodEvent(event)) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+
+    /**
+     * 在以当前 View 为根的子树中找到持有焦点的 View。
+     */
+    fun findFocus(): View? {
+        if (hasFocus) return this
+        for (child in children) {
+            val focused = child.findFocus()
+            if (focused != null) return focused
+        }
+        return null
+    }
+
+    fun getRoot(): View {
+        var root: View = this
+        while (root.parent != null) root = root.parent!!
+        return root
+    }
+
+
+        fun interface OnKeyListener {
+            fun onKey(v: View, event: KeyEvent): Boolean
+        }
 
 
     // 点击事件

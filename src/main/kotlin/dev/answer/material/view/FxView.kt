@@ -22,6 +22,7 @@ package dev.answer.material.view
 import dev.answer.material.content.Context
 import javafx.scene.Node
 import javafx.scene.canvas.GraphicsContext
+import javafx.scene.control.TextField
 import javafx.scene.layout.Pane
 
 /**
@@ -66,7 +67,14 @@ class HybridRoot(
     private val viewRoot: ViewRoot
 ) : Pane() {
 
+     val imeBridge = TextField().apply {
+        opacity = 0.0
+        isFocusTraversable = true
+        style = "-fx-background-color: transparent; -fx-border-color: transparent;"
+    }
+
     init {
+        children+= imeBridge
         children += viewRoot
         viewRoot.widthProperty().bind(widthProperty())
         viewRoot.heightProperty().bind(heightProperty())

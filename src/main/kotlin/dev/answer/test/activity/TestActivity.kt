@@ -20,10 +20,12 @@
 package dev.answer.test.activity
 
 import dev.answer.material.component.MaterialButton
+import dev.answer.material.component.BaseSlider
 import dev.answer.material.component.MaterialSwitch
+import dev.answer.material.component.TextInputEditText
+import dev.answer.material.component.TextInputLayout
 import dev.answer.material.content.Activity
 import dev.answer.material.graphics.ColorDrawable
-import dev.answer.material.view.Button
 import dev.answer.material.view.LayoutParams
 import dev.answer.material.view.LinearView
 import dev.answer.material.view.Orientation
@@ -188,6 +190,11 @@ class TestActivity : Activity() {
             setOnCheckedChangeListener { bool -> println("Switch state is ${bool}") }
         };
 
+        val slider  = BaseSlider(this).apply {
+
+        }
+
+        val emailLayout = TextInputEditText(this, hint = "邮箱地址")
 
        layout.addView(animationView)
         layout.addView(statusText)
@@ -197,6 +204,8 @@ class TestActivity : Activity() {
         layout.addView(rotateButton)
        layout.addView(resetButton)
         layout.addView(switch)
+        layout.addView(slider)
+        layout.addView(emailLayout)
 
         setContentView(layout)
     }

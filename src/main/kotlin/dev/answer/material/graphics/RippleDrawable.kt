@@ -18,6 +18,7 @@
  */
 
 package dev.answer.material.graphics
+import dev.answer.material.theme.drawRoundedRect
 import javafx.animation.Interpolator
 import javafx.animation.Transition
 import javafx.scene.canvas.GraphicsContext
@@ -47,7 +48,11 @@ class RippleDrawable(private val invalidateCallback: () -> Unit) {
 
         // 1. 完善裁剪逻辑
         gc.beginPath()
-        clipRoundRect(gc, 0.0, 0.0, width, height, cornerRadius * 0.7)
+
+        val radius = cornerRadius / 2
+        gc.drawRoundedRect(0.0, 0.0, width, height,
+            radius, radius, radius, radius)
+        gc.clip()
 
         // 2. 绘制波纹
         for (ripple in activeRipples) {
@@ -64,29 +69,6 @@ class RippleDrawable(private val invalidateCallback: () -> Unit) {
         }
 
         gc.restore()
-    }
-
-    fun clipRoundRect(
-        gc: GraphicsContext,
-        x: Double, y: Double,
-        w: Double, h: Double,
-        radius: Double,
-    ) {
-        val r = radius
-
-        gc.beginPath()
-        gc.moveTo(x + r, y)
-        gc.lineTo(x + w - r, y)
-        gc.quadraticCurveTo(x + w, y, x + w, y + r)
-        gc.lineTo(x + w, y + h - r)
-        gc.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-        gc.lineTo(x + r, y + h)
-        gc.quadraticCurveTo(x, y + h, x, y + h - r)
-        gc.lineTo(x, y + r)
-        gc.quadraticCurveTo(x, y, x + r, y)
-        gc.closePath()
-
-        gc.clip()
     }
 
 

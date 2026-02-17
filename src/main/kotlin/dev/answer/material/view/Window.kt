@@ -17,8 +17,14 @@
 
 package dev.answer.material.view
 
-import javafx.stage.Stage
+import javafx.event.EventHandler
 import javafx.scene.Scene
+import javafx.scene.control.TextField
+import javafx.scene.input.InputMethodEvent
+import javafx.scene.input.KeyEvent
+import javafx.scene.layout.Pane
+import javafx.stage.Stage
+
 /**
  *
  * @author AnswerDev
@@ -26,18 +32,32 @@ import javafx.scene.Scene
  * @description Window
  */
 class Window {
-
     private lateinit var viewRoot: ViewRoot
-    private val stage = Stage()
+    val stage = Stage()
 
     var width: Double = 0.0
     var height: Double = 0.0
     var title : String = "Title"
 
+
     fun setContent(view: View) {
-         viewRoot = ViewRoot(view)
+        viewRoot = ViewRoot(view)
         val hybridRoot = HybridRoot(viewRoot)
-        stage.scene = Scene(hybridRoot)
+        val scene = Scene(hybridRoot)
+        stage.scene = scene
+
+        hybridRoot.imeBridge.onInputMethodTextChanged =   EventHandler<InputMethodEvent> { event ->
+           viewRoot.rootView.dispatchInputMethodEvent(event)
+        }
+
+        val onKeyEvent =  EventHandler<KeyEvent> { event ->
+            viewRoot.rootView.dispatchKeyEvent(event)
+        }
+
+        hybridRoot.imeBridge.onKeyTyped = onKeyEvent
+        hybridRoot.imeBridge.onKeyPressed = onKeyEvent
+        hybridRoot.imeBridge.onKeyReleased = onKeyEvent
+
     }
 
     fun show() {

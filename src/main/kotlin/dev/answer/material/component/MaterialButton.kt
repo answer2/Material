@@ -86,6 +86,7 @@ class MaterialButton(
         gc.fillText(text, width / 2, height / 2 + 5)
     }
 
+
     override fun onTouchEvent(event: MouseEvent): Boolean {
         when (event.eventType) {
             MouseEvent.MOUSE_PRESSED -> {
